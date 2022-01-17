@@ -234,76 +234,117 @@ namespace XIVComboExpandedPlugin.Combos
 
 
                 gauge2 = GetJobGauge<BRDGauge>();
-                if (!IsOnCooldown(BRD.WandererMinet) && level >= BRD.Levels.WandererMinet && gauge2.Song == Song.NONE &&
-                    GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC && gauge2.SongTimer <= 2000)
-                {
-                    return BRD.WandererMinet;
-                }
 
-                if (!IsOnCooldown(BRD.Mageballad) && level >= BRD.Levels.Mageballad && gauge2.Song == Song.NONE &&
-                    GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC && gauge2.SongTimer <= 12000)
-                {
-                    return BRD.Mageballad;
-                }
 
-                if (level >= BRD.Levels.ArmyPeon && !IsOnCooldown(BRD.ArmyPeon) && gauge2.Song == Song.MAGE &&
-                    gauge2.SongTimer <= 11000 &&
-                    GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC)
+                if (GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC)
                 {
-                    return BRD.ArmyPeon;
-                }
-
-                gauge2 = GetJobGauge<BRDGauge>();
-                if (!IsOnCooldown(BRD.ArmyPeon) && level >= BRD.Levels.ArmyPeon && gauge2.Song == Song.NONE &&
-                    GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC)
-                {
-                    return BRD.ArmyPeon;
-                }
-
-                if (!IsOnCooldown(BRD.RagingStrikes) && level >= BRD.Levels.RagingStrikes)
-                    return BRD.RagingStrikes;
-
-                if (codaCount <= 2 && !IsOnCooldown(BRD.RadiantFinal) && level >= BRD.Levels.RadiantFinal &&
-                    HasEffect(BRD.Buffs.RagingStrike) &&
-                    GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC)
-                {
-                    return BRD.RadiantFinal;
-                }
-
-                if (!IsOnCooldown(BRD.BattleVoice) && level >= BRD.Levels.BattleVoice &&
-                    GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC)
-                {
-                    if (gauge2.Song != Song.NONE)
+                    if (!IsOnCooldown(BRD.WandererMinet) && level >= BRD.Levels.WandererMinet &&
+                        gauge2.Song == Song.NONE && gauge2.SongTimer <= 2000)
                     {
-                        return BRD.BattleVoice;
+                        return BRD.WandererMinet;
                     }
-                }
 
-                if (level >= BRD.Levels.WandererMinet && !IsOnCooldown(BRD.WandererMinet) && gauge2.Song == Song.ARMY &&
-                    GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC)
-                {
-                    return BRD.WandererMinet;
-                }
+                    if (!IsOnCooldown(BRD.Mageballad) && level >= BRD.Levels.Mageballad && gauge2.Song == Song.NONE &&
+                        gauge2.SongTimer <= 12000)
+                    {
+                        return BRD.Mageballad;
+                    }
 
-                if (!IsOnCooldown(BRD.PitchPerfect) && level >= BRD.Levels.PitchPerfect &&
-                    gauge2.Song == Song.WANDERER && gauge2.Repertoire >= 3 &&
-                    GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC)
-                {
-                    return BRD.PitchPerfect;
-                }
+                    if (level >= BRD.Levels.ArmyPeon && !IsOnCooldown(BRD.ArmyPeon) && gauge2.Song == Song.MAGE &&
+                        gauge2.SongTimer <= 11000)
+                    {
+                        return BRD.ArmyPeon;
+                    }
 
-                if (!IsOnCooldown(BRD.PitchPerfect) && level >= BRD.Levels.PitchPerfect &&
-                    gauge2.Song == Song.WANDERER && gauge2.Repertoire >= 2 &&
-                    GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC && gauge2.SongTimer <= 9000)
-                {
-                    return BRD.PitchPerfect;
-                }
+                    gauge2 = GetJobGauge<BRDGauge>();
+                    if (!IsOnCooldown(BRD.ArmyPeon) && level >= BRD.Levels.ArmyPeon && gauge2.Song == Song.NONE)
+                    {
+                        return BRD.ArmyPeon;
+                    }
 
-                if (!IsOnCooldown(BRD.PitchPerfect) && level >= BRD.Levels.PitchPerfect &&
-                    gauge2.Song == Song.WANDERER && gauge2.Repertoire >= 1 &&
-                    GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC && gauge2.SongTimer <= 6000)
-                {
-                    return BRD.PitchPerfect;
+                    if (!IsOnCooldown(BRD.RagingStrikes) && level >= BRD.Levels.RagingStrikes)
+                        return BRD.RagingStrikes;
+
+                    if (codaCount <= 2 && !IsOnCooldown(BRD.RadiantFinal) && level >= BRD.Levels.RadiantFinal &&
+                        HasEffect(BRD.Buffs.RagingStrike))
+                    {
+                        return BRD.RadiantFinal;
+                    }
+
+                    if (!IsOnCooldown(BRD.BattleVoice) && level >= BRD.Levels.BattleVoice)
+                    {
+                        if (gauge2.Song != Song.NONE)
+                        {
+                            return BRD.BattleVoice;
+                        }
+                    }
+
+                    if (level >= BRD.Levels.WandererMinet && !IsOnCooldown(BRD.WandererMinet) &&
+                        gauge2.Song == Song.ARMY)
+                    {
+                        return BRD.WandererMinet;
+                    }
+
+                    if (!IsOnCooldown(BRD.PitchPerfect) && level >= BRD.Levels.PitchPerfect &&
+                        gauge2.Song == Song.WANDERER && gauge2.Repertoire >= 3)
+                    {
+                        return BRD.PitchPerfect;
+                    }
+
+                    if (!IsOnCooldown(BRD.PitchPerfect) && level >= BRD.Levels.PitchPerfect &&
+                        gauge2.Song == Song.WANDERER && gauge2.Repertoire >= 2 && gauge2.SongTimer <= 9000)
+                    {
+                        return BRD.PitchPerfect;
+                    }
+
+                    if (!IsOnCooldown(BRD.PitchPerfect) && level >= BRD.Levels.PitchPerfect &&
+                        gauge2.Song == Song.WANDERER && gauge2.Repertoire >= 1 && gauge2.SongTimer <= 6000)
+                    {
+                        return BRD.PitchPerfect;
+                    }
+
+                    if (!IsOnCooldown(BRD.EmpyrealArrow) && level >= BRD.Levels.EmpyrealArrow)
+                    {
+                        return BRD.EmpyrealArrow;
+                    }
+
+
+                    if (!IsOnCooldown(BRD.Barrage) && level >= BRD.Levels.Barrage &&
+                        !HasEffect(BRD.Buffs.StraightShotReady))
+                    {
+                        return BRD.Barrage;
+                    }
+
+
+                    if (!IsOnCooldown(BRD.Sidewinder) && level >= BRD.Levels.Sidewinder)
+                    {
+                        return BRD.Sidewinder;
+                    }
+
+
+                    if (level >= BRD.Levels.Bloodletter &&
+                        GetCooldown(BRD.Bloodletter).RemainingCharges > 0)
+                    {
+                        if (HasEffect(BRD.Buffs.RadiantFinal) || HasEffect(BRD.Buffs.RagingStrike))
+                        {
+                            return BRD.Bloodletter;
+                        }
+
+                        if (gauge2.Song == Song.ARMY && GetCooldown(BRD.Bloodletter).RemainingCharges >= 2)
+                        {
+                            return BRD.Bloodletter;
+                        }
+
+                        if (gauge2.Song == Song.MAGE)
+                        {
+                            return BRD.Bloodletter;
+                        }
+
+                        if (gauge2.Song == Song.WANDERER)
+                        {
+                            return BRD.Bloodletter;
+                        }
+                    }
                 }
 
 
@@ -320,49 +361,6 @@ namespace XIVComboExpandedPlugin.Combos
                     if (GetCooldown(BRD.HeavyShot).CooldownRemaining <= BRD.GDC)
                     {
                         return BRD.HeavyShot;
-                    }
-                }
-
-                if (!IsOnCooldown(BRD.EmpyrealArrow) && level >= BRD.Levels.EmpyrealArrow)
-                {
-                    return BRD.EmpyrealArrow;
-                }
-
-
-                if (!IsOnCooldown(BRD.Barrage) && level >= BRD.Levels.Barrage &&
-                    !HasEffect(BRD.Buffs.StraightShotReady))
-                {
-                    return BRD.Barrage;
-                }
-
-
-                if (!IsOnCooldown(BRD.Sidewinder) && level >= BRD.Levels.Sidewinder)
-                {
-                    return BRD.Sidewinder;
-                }
-
-
-                if (level >= BRD.Levels.Bloodletter &&
-                    GetCooldown(BRD.Bloodletter).RemainingCharges > 0)
-                {
-                    if (HasEffect(BRD.Buffs.RadiantFinal) || HasEffect(BRD.Buffs.RagingStrike))
-                    {
-                        return BRD.Bloodletter;
-                    }
-
-                    if (gauge2.Song == Song.ARMY && GetCooldown(BRD.Bloodletter).RemainingCharges >= 2)
-                    {
-                        return BRD.Bloodletter;
-                    }
-
-                    if (gauge2.Song == Song.MAGE)
-                    {
-                        return BRD.Bloodletter;
-                    }
-
-                    if (gauge2.Song == Song.WANDERER)
-                    {
-                        return BRD.Bloodletter;
                     }
                 }
             }

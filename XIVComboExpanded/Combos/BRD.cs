@@ -211,22 +211,22 @@ namespace XIVComboExpandedPlugin.Combos
                 if (IsOffCooldown(BRD.IronJaws) && level >= BRD.Levels.IronJaws &&
                     GetCooldown(BRD.BurstShot).CooldownRemaining <= BRD.GDC)
                 {
-                    if (venomous is not null && venomous.RemainingTime <= 10)
+                    if (venomous is not null && venomous.RemainingTime <= 7)
                     {
                         return BRD.IronJaws;
                     }
 
-                    if (causticBite is not null && causticBite.RemainingTime <= 10)
+                    if (causticBite is not null && causticBite.RemainingTime <= 7)
                     {
                         return BRD.IronJaws;
                     }
 
-                    if (windbite is not null && windbite.RemainingTime <= 10)
+                    if (windbite is not null && windbite.RemainingTime <= 7)
                     {
                         return BRD.IronJaws;
                     }
 
-                    if (stormbite is not null && stormbite.RemainingTime <= 10)
+                    if (stormbite is not null && stormbite.RemainingTime <= 7)
                     {
                         return BRD.IronJaws;
                     }
@@ -294,14 +294,14 @@ namespace XIVComboExpandedPlugin.Combos
 
                 if (!IsOnCooldown(BRD.PitchPerfect) && level >= BRD.Levels.PitchPerfect &&
                     gauge2.Song == Song.WANDERER && gauge2.Repertoire >= 2 &&
-                    GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC && gauge2.SongTimer <= 6000)
+                    GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC && gauge2.SongTimer <= 9000)
                 {
                     return BRD.PitchPerfect;
                 }
 
                 if (!IsOnCooldown(BRD.PitchPerfect) && level >= BRD.Levels.PitchPerfect &&
                     gauge2.Song == Song.WANDERER && gauge2.Repertoire >= 1 &&
-                    GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC && gauge2.SongTimer <= 4000)
+                    GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC && gauge2.SongTimer <= 6000)
                 {
                     return BRD.PitchPerfect;
                 }
@@ -329,6 +329,19 @@ namespace XIVComboExpandedPlugin.Combos
                 }
 
 
+                if (!IsOnCooldown(BRD.Barrage) && level >= BRD.Levels.Barrage &&
+                    !HasEffect(BRD.Buffs.StraightShotReady))
+                {
+                    return BRD.Barrage;
+                }
+
+
+                if (!IsOnCooldown(BRD.Sidewinder) && level >= BRD.Levels.Sidewinder)
+                {
+                    return BRD.Sidewinder;
+                }
+
+
                 if (level >= BRD.Levels.Bloodletter &&
                     GetCooldown(BRD.Bloodletter).RemainingCharges > 0)
                 {
@@ -351,18 +364,6 @@ namespace XIVComboExpandedPlugin.Combos
                     {
                         return BRD.Bloodletter;
                     }
-                }
-
-                if (!IsOnCooldown(BRD.Barrage) && level >= BRD.Levels.Barrage &&
-                    !HasEffect(BRD.Buffs.StraightShotReady))
-                {
-                    return BRD.Barrage;
-                }
-
-
-                if (!IsOnCooldown(BRD.Sidewinder) && level >= BRD.Levels.Sidewinder)
-                {
-                    return BRD.Sidewinder;
                 }
             }
 

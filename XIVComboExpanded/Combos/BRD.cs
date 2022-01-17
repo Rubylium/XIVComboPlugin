@@ -61,6 +61,7 @@ namespace XIVComboExpandedPlugin.Combos
                 WandererMinet = 2216,
                 RadiantFinal = 2964,
                 RagingStrike = 125,
+                BattleVoice = 141,
                 ShadowbiteReady = 3002;
         }
 
@@ -164,8 +165,12 @@ namespace XIVComboExpandedPlugin.Combos
 
                     if (!IsOnCooldown(BRD.ApexArrow) && gauge.SoulVoice >= 80 &&
                         HasEffect(BRD.Buffs.RagingStrike) &&
-                        HasEffect(BRD.Buffs.RadiantFinal))
+                        HasEffect(BRD.Buffs.BattleVoice))
                         return BRD.ApexArrow;
+
+                    if (!IsOnCooldown(BRD.BlastArrow) && level >= BRD.Levels.BlastShot &&
+                        HasEffect(BRD.Buffs.BlastShotReady))
+                        return BRD.BlastArrow;
                 }
 
 
@@ -259,6 +264,7 @@ namespace XIVComboExpandedPlugin.Combos
                     return BRD.RagingStrikes;
 
                 if (codaCount <= 2 && !IsOnCooldown(BRD.RadiantFinal) && level >= BRD.Levels.RadiantFinal &&
+                    HasEffect(BRD.Buffs.RagingStrike) &&
                     GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC)
                 {
                     return BRD.RadiantFinal;

@@ -273,8 +273,7 @@ namespace XIVComboExpandedPlugin.Combos
                 if (!IsOnCooldown(BRD.BattleVoice) && level >= BRD.Levels.BattleVoice &&
                     GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC)
                 {
-                    if (HasEffect(BRD.Buffs.ArmyPeon) || HasEffect(BRD.Buffs.Mageballad) ||
-                        HasEffect(BRD.Buffs.WandererMinet))
+                    if (gauge2.Song != Song.NONE)
                     {
                         return BRD.BattleVoice;
                     }

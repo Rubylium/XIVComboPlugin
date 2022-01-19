@@ -48,6 +48,9 @@ namespace XIVComboExpandedPlugin.Combos
                 PitchPerfect = 8842,
                 WanderMinuet = 8843,
                 ArmyPeon = 8844,
+                RepellingShot = 8839,
+                Potion = 18943,
+                Nature = 19071,
                 EmpyrealArrow = 8838;
         }
 
@@ -368,26 +371,47 @@ namespace XIVComboExpandedPlugin.Combos
             if (actionID == BRD.PvpSkills.BurstShot)
             {
                 var gauge = GetJobGauge<BRDGauge>();
+
+                if ((LocalPlayer.CurrentHp * 100) / LocalPlayer.MaxHp <= 40 &&
+                    GetCooldown(BRD.PvpSkills.Potion).RemainingCharges > 0)
+                {
+                    return BRD.PvpSkills.Potion;
+                }
+
+                if (GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC)
+                {
+                    if (gauge.SongTimer <= 1)
+                    {
+                        if (!IsOnCooldown(BRD.PvpSkills.WanderMinuet))
+                            return BRD.PvpSkills.WanderMinuet;
+                        if (!IsOnCooldown(BRD.PvpSkills.ArmyPeon))
+                            return BRD.PvpSkills.ArmyPeon;
+                    }
+
+                    if (!IsOnCooldown(BRD.PvpSkills.Nature) && (LocalPlayer.CurrentHp * 100) / LocalPlayer.MaxHp < 80)
+                        return BRD.PvpSkills.Nature;
+
+                    if (!IsOnCooldown(BRD.PvpSkills.Shadowbite))
+                        return BRD.PvpSkills.Shadowbite;
+                    if (!IsOnCooldown(BRD.PvpSkills.Sidewinder))
+                        return BRD.PvpSkills.Sidewinder;
+                    if (GetCooldown(BRD.PvpSkills.EmpyrealArrow).RemainingCharges > 0)
+                        return BRD.PvpSkills.EmpyrealArrow;
+
+                    if (!IsOnCooldown(BRD.PvpSkills.PitchPerfect) && gauge.SongTimer >= 1 && gauge.Repertoire > 1 &&
+                        gauge.Song == Song.WANDERER)
+                        return BRD.PvpSkills.PitchPerfect;
+
+                    if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
+                         CurrentTarget.HitboxRadius) <= 6.0 && IsOffCooldown(BRD.PvpSkills.RepellingShot))
+                    {
+                        return BRD.PvpSkills.RepellingShot;
+                    }
+                }
+
                 if (gauge.SoulVoice >= 50 && !IsOnCooldown(BRD.PvpSkills.ApexArrow))
                     return BRD.PvpSkills.ApexArrow;
-                if (!IsOnCooldown(BRD.PvpSkills.Shadowbite))
-                    return BRD.PvpSkills.Shadowbite;
-                if (!IsOnCooldown(BRD.PvpSkills.Sidewinder))
-                    return BRD.PvpSkills.Sidewinder;
-                if (!IsOnCooldown(BRD.PvpSkills.EmpyrealArrow))
-                    return BRD.PvpSkills.EmpyrealArrow;
-
-                if (!IsOnCooldown(BRD.PvpSkills.PitchPerfect) && gauge.SongTimer >= 1 && gauge.Repertoire > 0 &&
-                    gauge.Song == Song.WANDERER)
-                    return BRD.PvpSkills.PitchPerfect;
-
-                if (gauge.SongTimer <= 1)
-                {
-                    if (!IsOnCooldown(BRD.PvpSkills.ArmyPeon))
-                        return BRD.PvpSkills.ArmyPeon;
-                    if (!IsOnCooldown(BRD.PvpSkills.WanderMinuet))
-                        return BRD.PvpSkills.WanderMinuet;
-                }
+                return BRD.PvpSkills.BurstShot;
             }
 
             return actionID;

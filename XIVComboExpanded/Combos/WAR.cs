@@ -88,8 +88,9 @@ namespace XIVComboExpandedPlugin.Combos
                 {
                     return WAR.Onslaugth;
                 }
-                
-                if (System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) >= 6.0)
+
+                if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
+                     CurrentTarget.HitboxRadius) >= 4.0)
                 {
                     if (level >= WAR.Levels.Tomahawk)
                     {
@@ -181,7 +182,6 @@ namespace XIVComboExpandedPlugin.Combos
                         return WAR.Upheaval;
                     }
 
-                    
 
                     if (level >= WAR.Levels.Onslaugth &&
                         GetCooldown(WAR.Onslaugth).RemainingCharges > 0)
@@ -241,7 +241,7 @@ namespace XIVComboExpandedPlugin.Combos
                     {
                         if (IsEnabled(CustomComboPreset.WarriorMythrilTempestOvercapFeature))
                         {
-                            if (level >= WAR.Levels.MythrilTempestTrait && gauge.BeastGauge > 80)
+                            if (level >= WAR.Levels.MythrilTempestTrait && gauge.BeastGauge >= 50)
                                 return WAR.Decimate;
                         }
 

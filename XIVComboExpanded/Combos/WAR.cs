@@ -1,9 +1,12 @@
 using Dalamud.Game.ClientState.JobGauge.Types;
+using FFXIVClientStructs.FFXIV.Client.Graphics;
+using Lumina.Data.Parsing;
 
 namespace XIVComboExpandedPlugin.Combos
 {
     internal static class WAR
     {
+        public const double GDC = 0.55;
         public const byte ClassID = 3;
         public const byte JobID = 21;
 
@@ -25,6 +28,9 @@ namespace XIVComboExpandedPlugin.Combos
             ChaoticCyclone = 16463,
             NascentFlash = 16464,
             InnerChaos = 16465,
+            Upheaval = 7387,
+            Onslaugth = 7386,
+            Tomahawk = 46,
             PrimalRend = 25753;
 
         public static class Buffs
@@ -59,6 +65,9 @@ namespace XIVComboExpandedPlugin.Combos
                 MythrilTempestTrait = 74,
                 NascentFlash = 76,
                 InnerChaos = 80,
+                Upheaval = 64,
+                Onslaugth = 62,
+                Tomahawk = 15,
                 PrimalRend = 90;
         }
     }
@@ -73,40 +82,113 @@ namespace XIVComboExpandedPlugin.Combos
             {
                 var gauge = GetJobGauge<WARGauge>();
 
-                if (IsEnabled(CustomComboPreset.WarriorStormsPathInnerReleaseFeature))
+                if (level >= WAR.Levels.Onslaugth &&
+                    GetCooldown(WAR.Onslaugth).RemainingCharges > 1 &&
+                    GetCooldown(WAR.HeavySwing).CooldownRemaining <= WAR.GDC && !HasEffect(WAR.Buffs.InnerRelease))
+                {
+                    return WAR.Onslaugth;
+                }
+                
+                if (System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) >= 6.0)
+                {
+                    if (level >= WAR.Levels.Tomahawk)
+                    {
+                        return WAR.Tomahawk;
+                    }
+                }
+
+                if (GetCooldown(WAR.HeavySwing).CooldownRemaining <= WAR.GDC)
                 {
                     if (level >= WAR.Levels.InnerRelease && HasEffect(WAR.Buffs.InnerRelease))
                         return WAR.FellCleave;
+
+
+                    if (comboTime > 0)
+                    {
+                        if (lastComboMove == WAR.Maim && level >= WAR.Levels.StormsEye &&
+                            !HasEffect(WAR.Buffs.SurgingTempest) && !HasEffect(WAR.Buffs.InnerRelease))
+                            return WAR.StormsEye;
+
+                        if (lastComboMove == WAR.Maim && level >= WAR.Levels.StormsEye &&
+                            FindEffect(WAR.Buffs.SurgingTempest).RemainingTime <= 15 &&
+                            !HasEffect(WAR.Buffs.InnerRelease))
+                            return WAR.StormsEye;
+
+                        if (lastComboMove == WAR.Maim && level >= WAR.Levels.StormsPath &&
+                            !HasEffect(WAR.Buffs.InnerRelease))
+                        {
+                            if (level >= WAR.Levels.FellCleave && gauge.BeastGauge >= 50)
+                            {
+                                return WAR.FellCleave;
+                            }
+
+                            if (level < WAR.Levels.FellCleave && level >= WAR.Levels.InnerBeast &&
+                                gauge.BeastGauge >= 50)
+                            {
+                                return WAR.InnerBeast;
+                            }
+
+
+                            return WAR.StormsPath;
+                        }
+
+
+                        if (lastComboMove == WAR.HeavySwing && level >= WAR.Levels.Maim &&
+                            !HasEffect(WAR.Buffs.InnerRelease))
+                        {
+                            if (IsEnabled(CustomComboPreset.WarriorStormsPathOvercapFeature))
+                            {
+                                if (level >= WAR.Levels.InnerBeast && gauge.BeastGauge > 50)
+                                    // Fell Cleave
+                                    return OriginalHook(WAR.InnerBeast);
+                            }
+
+                            return WAR.Maim;
+                        }
+                    }
+
+                    if (level >= WAR.Levels.InnerChaos && HasEffect(WAR.Buffs.NascentChaos) &&
+                        !HasEffect(WAR.Buffs.InnerRelease))
+                    {
+                        return WAR.InnerChaos;
+                    }
+
+                    return WAR.HeavySwing;
                 }
 
-                if (comboTime > 0)
+                if (!HasEffect(WAR.Buffs.InnerRelease))
                 {
-                    if (lastComboMove == WAR.Maim && level >= WAR.Levels.StormsPath)
+                    if (level >= WAR.Levels.InnerRelease && IsOffCooldown(WAR.InnerRelease))
                     {
-                        if (IsEnabled(CustomComboPreset.WarriorStormsPathOvercapFeature))
-                        {
-                            if (level >= WAR.Levels.InnerBeast && gauge.BeastGauge > 80)
-                                // Fell Cleave
-                                return OriginalHook(WAR.InnerBeast);
-                        }
-
-                        return WAR.StormsPath;
+                        return WAR.InnerRelease;
                     }
 
-                    if (lastComboMove == WAR.HeavySwing && level >= WAR.Levels.Maim)
+                    if (level < WAR.Levels.InnerRelease && level >= WAR.Levels.Berserk && IsOffCooldown(WAR.Berserk))
                     {
-                        if (IsEnabled(CustomComboPreset.WarriorStormsPathOvercapFeature))
-                        {
-                            if (level >= WAR.Levels.InnerBeast && gauge.BeastGauge > 90)
-                                // Fell Cleave
-                                return OriginalHook(WAR.InnerBeast);
-                        }
+                        return WAR.Berserk;
+                    }
 
-                        return WAR.Maim;
+                    if (level >= WAR.Levels.Infuriate &&
+                        GetCooldown(WAR.Infuriate).RemainingCharges > 0 && !HasEffect(WAR.Buffs.NascentChaos) &&
+                        gauge.BeastGauge <= 50)
+                    {
+                        return WAR.Infuriate;
+                    }
+
+
+                    if (level >= WAR.Levels.Upheaval && IsOffCooldown(WAR.Upheaval))
+                    {
+                        return WAR.Upheaval;
+                    }
+
+                    
+
+                    if (level >= WAR.Levels.Onslaugth &&
+                        GetCooldown(WAR.Onslaugth).RemainingCharges > 0)
+                    {
+                        return WAR.Onslaugth;
                     }
                 }
-
-                return WAR.HeavySwing;
             }
 
             return actionID;
@@ -198,7 +280,8 @@ namespace XIVComboExpandedPlugin.Combos
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            if (actionID == WAR.InnerBeast || actionID == WAR.FellCleave || actionID == WAR.SteelCyclone || actionID == WAR.Decimate)
+            if (actionID == WAR.InnerBeast || actionID == WAR.FellCleave || actionID == WAR.SteelCyclone ||
+                actionID == WAR.Decimate)
             {
                 if (IsEnabled(CustomComboPreset.WarriorPrimalBeastFeature))
                 {

@@ -1,9 +1,11 @@
 using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.JobGauge.Types;
 
 namespace XIVComboExpandedPlugin.Combos
 {
     internal static class NIN
     {
+        public const double GDC = 0.55;
         public const byte ClassID = 29;
         public const byte JobID = 30;
 
@@ -30,6 +32,8 @@ namespace XIVComboExpandedPlugin.Combos
             Huraijin = 25876,
             PhantomKamaitachi = 25774,
             ForkedRaiju = 25777,
+            Bhavacakra = 7402,
+            ThrowingDagger = 2247,
             FleetingRaiju = 25778;
 
         public static class Buffs
@@ -65,6 +69,9 @@ namespace XIVComboExpandedPlugin.Combos
                 Meisui = 72,
                 EnhancedKassatsu = 76,
                 Bunshin = 80,
+                ThrowingDagger = 15,
+                Bhavacakra = 68,
+                TrickAttack = 18,
                 PhantomKamaitachi = 82,
                 Raiju = 90;
         }
@@ -78,30 +85,72 @@ namespace XIVComboExpandedPlugin.Combos
         {
             if (actionID == NIN.AeolianEdge)
             {
-                if (IsEnabled(CustomComboPreset.NinjaAeolianEdgeRaijuFeature))
+                var gauge = GetJobGauge<NINGauge>();
+
+                if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
+                     CurrentTarget.HitboxRadius) >= 4.0)
                 {
-                    if (level >= NIN.Levels.Raiju && HasEffect(NIN.Buffs.RaijuReady))
-                        return NIN.FleetingRaiju;
+                    if (level >= NIN.Levels.ThrowingDagger)
+                    {
+                        return NIN.ThrowingDagger;
+                    }
                 }
 
-                if (IsEnabled(CustomComboPreset.NinjaAeolianNinjutsuFeature))
+                if (level >= NIN.Levels.TrickAttack && HasEffect(NIN.Buffs.Hidden) && IsOffCooldown(NIN.TrickAttack))
                 {
-                    if (level >= NIN.Levels.Ninjitsu && HasEffect(NIN.Buffs.Mudra))
-                        return OriginalHook(NIN.Ninjutsu);
+                    return NIN.TrickAttack;
                 }
 
-                if (IsEnabled(CustomComboPreset.NinjaAeolianEdgeCombo))
+                if (GetCooldown(NIN.SpinningEdge).CooldownRemaining <= NIN.GDC)
                 {
+                    if (level >= NIN.Levels.Huraijin && IsOffCooldown(NIN.Huraijin) && gauge.HutonTimer <= 1000)
+                    {
+                        return NIN.Huraijin;
+                    }
+
+                    if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
+                         CurrentTarget.HitboxRadius) >= 4.0)
+                    {
+                        
+                    }
+
+
                     if (comboTime > 0)
                     {
                         if (lastComboMove == NIN.GustSlash && level >= NIN.Levels.AeolianEdge)
-                            return NIN.AeolianEdge;
+                        {
+                            if (level >= NIN.Levels.ArmorCrush && IsOffCooldown(NIN.ArmorCrush) &&
+                                gauge.HutonTimer <= 10000)
+                            {
+                                return NIN.ArmorCrush;
+                            }
+                            else
+                            {
+                                return NIN.AeolianEdge;
+                            }
+                        }
 
                         if (lastComboMove == NIN.SpinningEdge && level >= NIN.Levels.GustSlash)
                             return NIN.GustSlash;
                     }
 
                     return NIN.SpinningEdge;
+                }
+
+
+                if (level >= NIN.Levels.Bunshin && IsOffCooldown(NIN.Bunshin) && gauge.Ninki >= 50)
+                {
+                    return NIN.Bunshin;
+                }
+
+                if (level >= NIN.Levels.Bhavacakra && IsOffCooldown(NIN.Bhavacakra) && gauge.Ninki >= 50)
+                {
+                    return NIN.Bhavacakra;
+                }
+
+                if (level >= NIN.Levels.Mug && IsOffCooldown(NIN.Mug))
+                {
+                    return NIN.Mug;
                 }
             }
 

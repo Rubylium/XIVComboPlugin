@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using Dalamud.Game.ClientState.JobGauge.Enums;
 using Dalamud.Game.ClientState.JobGauge.Types;
 
@@ -5,11 +6,13 @@ namespace XIVComboExpandedPlugin.Combos
 {
     internal static class SAM
     {
+        public const double GDC = 0.55;
         public const byte JobID = 34;
 
         public const uint
             // Single target
             Hakaze = 7477,
+            Enpi = 7486,
             Jinpu = 7478,
             Shifu = 7479,
             Yukikaze = 7480,
@@ -30,9 +33,16 @@ namespace XIVComboExpandedPlugin.Combos
             HissatsuKyuten = 7491,
             HissatsuSenei = 16481,
             HissatsuGuren = 7496,
+            HissatsuKaiten = 7494,
             Ikishoten = 16482,
             Shoha2 = 25779,
             OgiNamikiri = 25781,
+            MidareSetsugekka = 7487,
+            Higanbana = 7489,
+            TenkaGoken = 7488,
+            MeikyoShisui = 7499,
+            Feint = 7549,
+            TrueNorth = 7546,
             KaeshiNamikiri = 25782;
 
         public static class Buffs
@@ -42,19 +52,21 @@ namespace XIVComboExpandedPlugin.Combos
                 EyesOpen = 1252,
                 Jinpu = 1298,
                 Shifu = 1299,
+                TrueNorth = 1250,
                 OgiNamikiriReady = 2959;
         }
 
         public static class Debuffs
         {
             public const ushort
-                Placeholder = 0;
+                Higanbana = 1228;
         }
 
         public static class Levels
         {
             public const byte
                 Jinpu = 4,
+                Enpi = 15,
                 Shifu = 18,
                 Gekko = 30,
                 Mangetsu = 35,
@@ -65,11 +77,17 @@ namespace XIVComboExpandedPlugin.Combos
                 HissatsuKyuten = 64,
                 HissatsuGuren = 70,
                 HissatsuSenei = 72,
+                HissatsuKaiten = 52,
+                HissatsuShinten = 62,
                 TsubameGaeshi = 76,
+                Ikishoten = 68,
                 Shoha = 80,
                 Shoha2 = 82,
                 Hyosetsu = 86,
                 Fuko = 86,
+                Iaijutsu = 30,
+                Feint = 22,
+                TrueNorth = 50,
                 OgiNamikiri = 90;
         }
     }
@@ -82,16 +100,210 @@ namespace XIVComboExpandedPlugin.Combos
         {
             if (actionID == SAM.Yukikaze)
             {
-                if (level >= SAM.Levels.MeikyoShisui && HasEffect(SAM.Buffs.MeikyoShisui))
-                    return SAM.Yukikaze;
+                var gauge = GetJobGauge<SAMGauge>();
 
-                if (comboTime > 0)
+                var sens = 0;
+                if (gauge.HasGetsu)
                 {
-                    if (lastComboMove == SAM.Hakaze && level >= SAM.Levels.Yukikaze)
-                        return SAM.Yukikaze;
+                    sens = sens + 1;
                 }
 
-                return SAM.Hakaze;
+                if (gauge.HasKa)
+                {
+                    sens = sens + 1;
+                }
+
+                if (gauge.HasSetsu)
+                {
+                    sens = sens + 1;
+                }
+
+                if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
+                     CurrentTarget.HitboxRadius) >= 4.0)
+                {
+                    if (level >= SAM.Levels.Enpi)
+                    {
+                        return SAM.Enpi;
+                    }
+                }
+
+                if (GetCooldown(SAM.Yukikaze).CooldownRemaining <= WAR.GDC)
+                {
+                    if (!gauge.HasSetsu)
+                    {
+                        if (level >= SAM.Levels.MeikyoShisui && HasEffect(SAM.Buffs.MeikyoShisui))
+                            return SAM.Yukikaze;
+
+                        if (comboTime > 0)
+                        {
+                            if (lastComboMove == SAM.Hakaze && level >= SAM.Levels.Yukikaze)
+                                return SAM.Yukikaze;
+                        }
+
+                        return SAM.Hakaze;
+                    }
+
+                    if (level >= SAM.Levels.Iaijutsu && !TargetHasEffect(SAM.Debuffs.Higanbana) && gauge.HasSetsu)
+                    {
+                        return SAM.Higanbana;
+                    }
+
+                    if (level >= SAM.Levels.Iaijutsu && FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime <= 20 &&
+                        gauge.HasSetsu && sens <= 1)
+                    {
+                        return SAM.Higanbana;
+                    }
+
+                    if (!gauge.HasGetsu)
+                    {
+                        if (level >= SAM.Levels.MeikyoShisui && HasEffect(SAM.Buffs.MeikyoShisui))
+                            return SAM.Gekko;
+
+                        if (comboTime > 0)
+                        {
+                            if (lastComboMove == SAM.Jinpu && level >= SAM.Levels.Gekko)
+                                return SAM.Gekko;
+
+                            if (lastComboMove == SAM.Hakaze && level >= SAM.Levels.Jinpu)
+                                return SAM.Jinpu;
+                        }
+
+                        return SAM.Hakaze;
+                    }
+
+                    if (!gauge.HasKa)
+                    {
+                        if (level >= SAM.Levels.MeikyoShisui && HasEffect(SAM.Buffs.MeikyoShisui))
+                            return SAM.Kasha;
+
+                        if (comboTime > 0)
+                        {
+                            if (lastComboMove == SAM.Shifu && level >= SAM.Levels.Kasha)
+                                return SAM.Kasha;
+
+                            if (lastComboMove == SAM.Hakaze && level >= SAM.Levels.Shifu)
+                                return SAM.Shifu;
+                        }
+
+                        return SAM.Hakaze;
+                    }
+
+                    if (level >= SAM.Levels.Iaijutsu && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu)
+                    {
+                        return SAM.MidareSetsugekka;
+                    }
+                }
+
+                if (level >= SAM.Levels.Feint && IsOffCooldown(SAM.Feint))
+                {
+                    return SAM.Feint;
+                }
+
+                if (level >= SAM.Levels.TrueNorth && GetCooldown(SAM.TrueNorth).RemainingCharges > 0 &&
+                    !HasEffect(SAM.Buffs.TrueNorth))
+                {
+                    return SAM.TrueNorth;
+                }
+
+                if (level >= SAM.Levels.MeikyoShisui && IsOffCooldown(SAM.MeikyoShisui))
+                {
+                    return SAM.MeikyoShisui;
+                }
+
+                if (level >= SAM.Levels.Ikishoten && IsOffCooldown(SAM.Ikishoten))
+                {
+                    return SAM.Ikishoten;
+                }
+
+                if (level >= SAM.Levels.HissatsuKaiten && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu &&
+                    gauge.Kenki >= 20)
+                {
+                    return SAM.HissatsuKaiten;
+                }
+
+
+                if (sens < 3)
+                {
+                    if (level >= SAM.Levels.HissatsuGuren && IsOffCooldown(SAM.HissatsuGuren) && gauge.Kenki >= 25)
+                    {
+                        return SAM.HissatsuGuren;
+                    }
+
+                    if (level >= SAM.Levels.HissatsuShinten && IsOffCooldown(SAM.HissatsuShinten) && gauge.Kenki >= 25)
+                    {
+                        return SAM.HissatsuShinten;
+                    }
+                }
+            }
+
+            if (actionID == SAM.Fuga)
+            {
+                var gauge = GetJobGauge<SAMGauge>();
+                if (GetCooldown(SAM.Yukikaze).CooldownRemaining <= WAR.GDC)
+                {
+                    if (!gauge.HasGetsu)
+                    {
+                        if (comboTime > 0)
+                        {
+                            if (lastComboMove == SAM.Fuga && level >= SAM.Levels.Mangetsu)
+                                return SAM.Mangetsu;
+                        }
+
+                        return SAM.Fuga;
+                    }
+
+                    if (!gauge.HasKa)
+                    {
+                        if (comboTime > 0)
+                        {
+                            if (lastComboMove == SAM.Fuga && level >= SAM.Levels.Oka)
+                                return SAM.Oka;
+                        }
+
+                        return SAM.Fuga;
+                    }
+
+                    if (level >= SAM.Levels.Iaijutsu && gauge.HasGetsu && gauge.HasKa)
+                    {
+                        return SAM.TenkaGoken;
+                    }
+                }
+
+                if (level >= SAM.Levels.Ikishoten && IsOffCooldown(SAM.Ikishoten))
+                {
+                    return SAM.Ikishoten;
+                }
+
+                if (level >= SAM.Levels.HissatsuKaiten && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu &&
+                    gauge.Kenki >= 20)
+                {
+                    return SAM.HissatsuKaiten;
+                }
+
+                var sens = 0;
+                if (gauge.HasGetsu)
+                {
+                    sens = sens + 1;
+                }
+
+                if (gauge.HasKa)
+                {
+                    sens = sens + 1;
+                }
+
+
+                if (sens < 2)
+                {
+                    if (level >= SAM.Levels.HissatsuGuren && IsOffCooldown(SAM.HissatsuGuren) && gauge.Kenki >= 25)
+                    {
+                        return SAM.HissatsuGuren;
+                    }
+
+                    if (level >= SAM.Levels.HissatsuShinten && IsOffCooldown(SAM.HissatsuShinten) && gauge.Kenki >= 25)
+                    {
+                        return SAM.HissatsuShinten;
+                    }
+                }
             }
 
             return actionID;
@@ -289,7 +501,8 @@ namespace XIVComboExpandedPlugin.Combos
 
                     if (IsEnabled(CustomComboPreset.SamuraiSeneiGurenFeature))
                     {
-                        if (level >= SAM.Levels.HissatsuGuren && level < SAM.Levels.HissatsuSenei && IsOffCooldown(SAM.HissatsuGuren))
+                        if (level >= SAM.Levels.HissatsuGuren && level < SAM.Levels.HissatsuSenei &&
+                            IsOffCooldown(SAM.HissatsuGuren))
                             return SAM.HissatsuGuren;
                     }
                 }
@@ -347,7 +560,8 @@ namespace XIVComboExpandedPlugin.Combos
 
     internal class SamuraiIkishoten : CustomCombo
     {
-        protected internal override CustomComboPreset Preset { get; } = CustomComboPreset.SamuraiIkishotenNamikiriFeature;
+        protected internal override CustomComboPreset Preset { get; } =
+            CustomComboPreset.SamuraiIkishotenNamikiriFeature;
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {

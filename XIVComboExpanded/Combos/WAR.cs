@@ -31,6 +31,7 @@ namespace XIVComboExpandedPlugin.Combos
             Upheaval = 7387,
             Onslaugth = 7386,
             Tomahawk = 46,
+            Orogeny = 25752,
             PrimalRend = 25753;
 
         public static class Buffs
@@ -68,6 +69,7 @@ namespace XIVComboExpandedPlugin.Combos
                 Upheaval = 64,
                 Onslaugth = 62,
                 Tomahawk = 15,
+                Orogeny = 86,
                 PrimalRend = 90;
         }
     }
@@ -81,14 +83,6 @@ namespace XIVComboExpandedPlugin.Combos
             if (actionID == WAR.StormsPath)
             {
                 var gauge = GetJobGauge<WARGauge>();
-
-                if (level >= WAR.Levels.Onslaugth &&
-                    GetCooldown(WAR.Onslaugth).RemainingCharges > 1 &&
-                    GetCooldown(WAR.HeavySwing).CooldownRemaining <= WAR.GDC && !HasEffect(WAR.Buffs.InnerRelease))
-                {
-                    return WAR.Onslaugth;
-                }
-
                 if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
                      CurrentTarget.HitboxRadius) >= 4.0)
                 {
@@ -98,11 +92,17 @@ namespace XIVComboExpandedPlugin.Combos
                     }
                 }
 
+
                 if (GetCooldown(WAR.HeavySwing).CooldownRemaining <= WAR.GDC)
                 {
                     if (level >= WAR.Levels.InnerRelease && HasEffect(WAR.Buffs.InnerRelease))
                         return WAR.FellCleave;
 
+                    if (level >= WAR.Levels.PrimalRend && IsOffCooldown(WAR.PrimalRend) &&
+                        HasEffect(WAR.Buffs.PrimalRendReady))
+                    {
+                        return WAR.PrimalRend;
+                    }
 
                     if (comboTime > 0)
                     {
@@ -139,7 +139,7 @@ namespace XIVComboExpandedPlugin.Combos
                         {
                             if (IsEnabled(CustomComboPreset.WarriorStormsPathOvercapFeature))
                             {
-                                if (level >= WAR.Levels.InnerBeast && gauge.BeastGauge > 50)
+                                if (level >= WAR.Levels.InnerBeast && gauge.BeastGauge >= 50)
                                     // Fell Cleave
                                     return OriginalHook(WAR.InnerBeast);
                             }
@@ -149,7 +149,7 @@ namespace XIVComboExpandedPlugin.Combos
                     }
 
                     if (level >= WAR.Levels.InnerChaos && HasEffect(WAR.Buffs.NascentChaos) &&
-                        !HasEffect(WAR.Buffs.InnerRelease))
+                        !HasEffect(WAR.Buffs.InnerRelease) && gauge.BeastGauge >= 50)
                     {
                         return WAR.InnerChaos;
                     }
@@ -159,6 +159,19 @@ namespace XIVComboExpandedPlugin.Combos
 
                 if (!HasEffect(WAR.Buffs.InnerRelease))
                 {
+                    if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
+                         CurrentTarget.HitboxRadius) <= 4.0)
+                    {
+                        if (level >= WAR.Levels.Onslaugth &&
+                            GetCooldown(WAR.Onslaugth).RemainingCharges > 1 &&
+                            GetCooldown(WAR.HeavySwing).CooldownRemaining <= WAR.GDC &&
+                            !HasEffect(WAR.Buffs.InnerRelease))
+                        {
+                            return WAR.Onslaugth;
+                        }
+                    }
+
+
                     if (level >= WAR.Levels.InnerRelease && IsOffCooldown(WAR.InnerRelease))
                     {
                         return WAR.InnerRelease;
@@ -228,28 +241,27 @@ namespace XIVComboExpandedPlugin.Combos
             if (actionID == WAR.MythrilTempest)
             {
                 var gauge = GetJobGauge<WARGauge>();
-
-                if (IsEnabled(CustomComboPreset.WarriorMythrilTempestInnerReleaseFeature))
+                if (GetCooldown(WAR.HeavySwing).CooldownRemaining <= WAR.GDC)
                 {
-                    if (level >= WAR.Levels.InnerRelease && HasEffect(WAR.Buffs.InnerRelease))
+                    if (level >= WAR.Levels.Decimate && gauge.BeastGauge >= 50)
                         return WAR.Decimate;
-                }
 
-                if (comboTime > 0)
-                {
-                    if (lastComboMove == WAR.Overpower && level >= WAR.Levels.MythrilTempest)
+                    if (comboTime > 0)
                     {
-                        if (IsEnabled(CustomComboPreset.WarriorMythrilTempestOvercapFeature))
+                        if (lastComboMove == WAR.Overpower && level >= WAR.Levels.MythrilTempest)
                         {
-                            if (level >= WAR.Levels.MythrilTempestTrait && gauge.BeastGauge >= 50)
-                                return WAR.Decimate;
+                            return WAR.MythrilTempest;
                         }
-
-                        return WAR.MythrilTempest;
                     }
+
+                    return WAR.Overpower;
                 }
 
-                return WAR.Overpower;
+                if (level >= WAR.Levels.InnerRelease && HasEffect(WAR.Buffs.InnerRelease))
+                    return WAR.Decimate;
+
+                if (level >= WAR.Levels.Orogeny && IsOffCooldown(WAR.Orogeny))
+                    return WAR.Orogeny;
             }
 
             return actionID;

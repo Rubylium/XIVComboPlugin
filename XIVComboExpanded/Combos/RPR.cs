@@ -5,10 +5,12 @@ namespace XIVComboExpandedPlugin.Combos
 {
     internal static class RPR
     {
+        public const double GDC = 0.55;
         public const byte JobID = 39;
 
         public const uint
             // Single Target
+            Harpe = 24386,
             Slice = 24373,
             WaxingSlice = 24374,
             InfernalSlice = 24375,
@@ -43,6 +45,7 @@ namespace XIVComboExpandedPlugin.Combos
             HarvestMoon = 24388,
             HellsIngress = 24401,
             HellsEgress = 24402,
+            Feint = 7549,
             Regress = 24403;
 
         public static class Buffs
@@ -62,12 +65,17 @@ namespace XIVComboExpandedPlugin.Combos
         public static class Debuffs
         {
             public const ushort
-                Placeholder = 0;
+                DeathDesign = 2586;
         }
 
         public static class Levels
         {
             public const byte
+                Harpe = 15,
+                Feint = 22,
+                ArcaneCircle = 72,
+                SoulSlice = 60,
+                ShadowOfDeath = 10,
                 WaxingSlice = 5,
                 HellsIngress = 20,
                 HellsEgress = 20,
@@ -82,6 +90,9 @@ namespace XIVComboExpandedPlugin.Combos
                 EnhancedShroud = 86,
                 LemuresScythe = 86,
                 PlentifulHarvest = 88,
+                BloodStalk = 50,
+                Gallows = 70,
+                Gibbet = 70,
                 Communio = 90;
         }
     }
@@ -96,61 +107,53 @@ namespace XIVComboExpandedPlugin.Combos
             {
                 var gauge = GetJobGauge<RPRGauge>();
 
-                if (IsEnabled(CustomComboPreset.ReaperSliceSoulsowFeature))
+                if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
+                     CurrentTarget.HitboxRadius) >= 4.0)
                 {
-                    if (level >= RPR.Levels.Soulsow && !HasCondition(ConditionFlag.InCombat) && !HasEffect(RPR.Buffs.Soulsow))
-                        return RPR.Soulsow;
-                }
-
-                if (level >= RPR.Levels.Enshroud && gauge.EnshroudedTimeRemaining > 0)
-                {
-                    if (IsEnabled(CustomComboPreset.ReaperSliceCommunioFeature))
+                    if (level >= RPR.Levels.Harpe)
                     {
-                        if (level >= RPR.Levels.Communio && gauge.LemureShroud == 1 && gauge.VoidShroud == 0)
-                            return RPR.Communio;
-                    }
-
-                    if (IsEnabled(CustomComboPreset.ReaperSliceLemuresFeature))
-                    {
-                        if (level >= RPR.Levels.EnhancedShroud && gauge.VoidShroud >= 2)
-                            return RPR.LemuresSlice;
+                        return RPR.Harpe;
                     }
                 }
 
-                if ((level >= RPR.Levels.SoulReaver && HasEffect(RPR.Buffs.SoulReaver)) ||
-                    (level >= RPR.Levels.Enshroud && gauge.EnshroudedTimeRemaining > 0))
+                if (GetCooldown(RPR.Slice).CooldownRemaining <= RPR.GDC)
                 {
-                    if (IsEnabled(CustomComboPreset.ReaperSliceEnhancedEnshroudedFeature))
+                    if (level >= RPR.Levels.ShadowOfDeath && IsOffCooldown(RPR.ShadowOfDeath) &&
+                        !TargetHasEffect(RPR.Debuffs.DeathDesign))
                     {
-                        if (HasEffect(RPR.Buffs.EnhancedVoidReaping))
-                            return RPR.VoidReaping;
-
-                        if (HasEffect(RPR.Buffs.EnhancedCrossReaping))
-                            return RPR.CrossReaping;
+                        return RPR.ShadowOfDeath;
                     }
 
-                    if (IsEnabled(CustomComboPreset.ReaperSliceEnhancedSoulReaverFeature))
+                    if (level >= RPR.Levels.ShadowOfDeath && IsOffCooldown(RPR.ShadowOfDeath) &&
+                        FindTargetEffect(RPR.Debuffs.DeathDesign).RemainingTime <= 15)
                     {
-                        if (HasEffect(RPR.Buffs.EnhancedGibbet))
-                            // Void Reaping
-                            return OriginalHook(RPR.Gibbet);
-
-                        if (HasEffect(RPR.Buffs.EnhancedGallows))
-                            // Cross Reaping
-                            return OriginalHook(RPR.Gallows);
+                        return RPR.ShadowOfDeath;
                     }
 
-                    if (IsEnabled(CustomComboPreset.ReaperSliceGibbetFeature))
-                        // Void Reaping
-                        return OriginalHook(RPR.Gibbet);
+                    if (level >= RPR.Levels.SoulSlice && IsOffCooldown(RPR.SoulSlice))
+                    {
+                        return RPR.SoulSlice;
+                    }
 
-                    if (IsEnabled(CustomComboPreset.ReaperSliceGallowsFeature))
-                        // Cross Reaping
-                        return OriginalHook(RPR.Gallows);
-                }
 
-                if (IsEnabled(CustomComboPreset.ReaperSliceCombo))
-                {
+                    if (level >= RPR.Levels.Gallows && IsOffCooldown(RPR.Gallows) && HasEffect(RPR.Buffs.SoulReaver) &&
+                        HasEffect(RPR.Buffs.EnhancedGallows))
+                    {
+                        return RPR.Gallows;
+                    }
+
+                    if (level >= RPR.Levels.Gibbet && IsOffCooldown(RPR.Gibbet) && HasEffect(RPR.Buffs.SoulReaver) &&
+                        HasEffect(RPR.Buffs.EnhancedGibbet))
+                    {
+                        return RPR.Gibbet;
+                    }
+
+                    if (level >= RPR.Levels.Gallows && IsOffCooldown(RPR.Gallows) && HasEffect(RPR.Buffs.SoulReaver))
+                    {
+                        return RPR.Gallows;
+                    }
+
+
                     if (comboTime > 0)
                     {
                         if (lastComboMove == RPR.WaxingSlice && level >= RPR.Levels.InfernalSlice)
@@ -161,6 +164,28 @@ namespace XIVComboExpandedPlugin.Combos
                     }
 
                     return RPR.Slice;
+                }
+
+
+                if (level >= RPR.Levels.Gluttony && IsOffCooldown(RPR.Gluttony) && gauge.Soul >= 50)
+                {
+                    return RPR.Gluttony;
+                }
+
+                if (level >= RPR.Levels.BloodStalk && IsOffCooldown(RPR.BloodStalk) && gauge.Soul >= 50)
+                {
+                    return RPR.BloodStalk;
+                }
+
+                if (level >= RPR.Levels.ArcaneCircle && IsOffCooldown(RPR.ArcaneCircle))
+                {
+                    return RPR.ArcaneCircle;
+                }
+
+
+                if (level >= RPR.Levels.Feint && IsOffCooldown(RPR.Feint))
+                {
+                    return RPR.Feint;
                 }
             }
 
@@ -186,7 +211,8 @@ namespace XIVComboExpandedPlugin.Combos
 
                 if (IsEnabled(CustomComboPreset.ReaperScytheSoulsowFeature))
                 {
-                    if (level >= RPR.Levels.Soulsow && !HasCondition(ConditionFlag.InCombat) && !HasEffect(RPR.Buffs.Soulsow))
+                    if (level >= RPR.Levels.Soulsow && !HasCondition(ConditionFlag.InCombat) &&
+                        !HasEffect(RPR.Buffs.Soulsow))
                         return RPR.Soulsow;
                 }
 
@@ -241,7 +267,8 @@ namespace XIVComboExpandedPlugin.Combos
 
                 if (IsEnabled(CustomComboPreset.ReaperShadowSoulsowFeature))
                 {
-                    if (level >= RPR.Levels.Soulsow && !HasCondition(ConditionFlag.InCombat) && !HasTarget() && !HasEffect(RPR.Buffs.Soulsow))
+                    if (level >= RPR.Levels.Soulsow && !HasCondition(ConditionFlag.InCombat) && !HasTarget() &&
+                        !HasEffect(RPR.Buffs.Soulsow))
                         return RPR.Soulsow;
                 }
 

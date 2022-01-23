@@ -34,6 +34,15 @@ namespace XIVComboExpandedPlugin.Combos
             ForkedRaiju = 25777,
             Bhavacakra = 7402,
             ThrowingDagger = 2247,
+            FumaShuriken = 2265,
+            Huton = 2269,
+            katon = 2266,
+            Raiton = 2267,
+            Hyoton = 2268,
+            Doton = 2270,
+            Suiton = 2271,
+            GokaMekkyaku = 16491,
+            HyoshoRanryu = 16492,
             FleetingRaiju = 25778;
 
         public static class Buffs
@@ -44,6 +53,7 @@ namespace XIVComboExpandedPlugin.Combos
                 Suiton = 507,
                 Hidden = 614,
                 Bunshin = 1954,
+                TenChiJin = 1186,
                 RaijuReady = 2690;
         }
 
@@ -67,12 +77,14 @@ namespace XIVComboExpandedPlugin.Combos
                 Huraijin = 60,
                 TenChiJin = 70,
                 Meisui = 72,
+                Kassatsu = 50,
                 EnhancedKassatsu = 76,
                 Bunshin = 80,
                 ThrowingDagger = 15,
                 Bhavacakra = 68,
                 TrickAttack = 18,
                 PhantomKamaitachi = 82,
+                DreamWithinADream = 56,
                 Raiju = 90;
         }
     }
@@ -108,12 +120,6 @@ namespace XIVComboExpandedPlugin.Combos
                         return NIN.Huraijin;
                     }
 
-                    if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
-                         CurrentTarget.HitboxRadius) >= 4.0)
-                    {
-                        
-                    }
-
 
                     if (comboTime > 0)
                     {
@@ -138,6 +144,48 @@ namespace XIVComboExpandedPlugin.Combos
                 }
 
 
+                if (!HasEffect(NIN.Buffs.Kassatsu))
+                {
+                    if (level >= NIN.Levels.TenChiJin && IsOffCooldown(NIN.TenChiJin))
+                    {
+                        return NIN.TenChiJin;
+                    }
+                }
+
+                if (!HasEffect(NIN.Buffs.TenChiJin))
+                {
+                    if (IsOffCooldown(NIN.FumaShuriken))
+                    {
+                        return NIN.FumaShuriken;
+                    }
+
+                    if (IsOffCooldown(NIN.Raiton))
+                    {
+                        return NIN.Raiton;
+                    }
+
+                    if (IsOffCooldown(NIN.Suiton))
+                    {
+                        return NIN.Suiton;
+                    }
+
+                    if (IsOffCooldown(NIN.Doton))
+                    {
+                        return NIN.Doton;
+                    }
+
+                    if (IsOffCooldown(NIN.katon))
+                    {
+                        return NIN.katon;
+                    }
+                }
+
+                if (level >= NIN.Levels.Kassatsu && IsOffCooldown(NIN.Kassatsu))
+                {
+                    return NIN.Kassatsu;
+                }
+
+
                 if (level >= NIN.Levels.Bunshin && IsOffCooldown(NIN.Bunshin) && gauge.Ninki >= 50)
                 {
                     return NIN.Bunshin;
@@ -151,6 +199,16 @@ namespace XIVComboExpandedPlugin.Combos
                 if (level >= NIN.Levels.Mug && IsOffCooldown(NIN.Mug))
                 {
                     return NIN.Mug;
+                }
+
+                if (level >= NIN.Levels.TrickAttack && IsOffCooldown(NIN.TrickAttack) && HasEffect(NIN.Buffs.Hidden) || HasEffect(NIN.Buffs.Suiton))
+                {
+                    return NIN.TrickAttack;
+                }
+
+                if (level >= NIN.Levels.DreamWithinADream && IsOffCooldown(NIN.DreamWithinADream))
+                {
+                    return NIN.DreamWithinADream;
                 }
             }
 

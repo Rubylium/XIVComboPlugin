@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.JobGauge.Types;
 using Dalamud.Game.ClientState.Objects.SubKinds;
@@ -118,11 +117,13 @@ namespace XIVComboExpandedPlugin.Combos
                         if (a1.Data.RemainingCharges == a2.Data.RemainingCharges)
                         {
                             return a1.Data.ChargeCooldownRemaining < a2.Data.ChargeCooldownRemaining
-                                ? a1 : a2;
+                                ? a1
+                                : a2;
                         }
 
                         return a1.Data.RemainingCharges > a2.Data.RemainingCharges
-                            ? a1 : a2;
+                            ? a1
+                            : a2;
                     }
                     else if (a1.Data.HasCharges)
                     {
@@ -130,7 +131,8 @@ namespace XIVComboExpandedPlugin.Combos
                             return a1;
 
                         return a1.Data.ChargeCooldownRemaining < a2.Data.CooldownRemaining
-                            ? a1 : a2;
+                            ? a1
+                            : a2;
                     }
                     else if (a2.Data.HasCharges)
                     {
@@ -138,12 +140,14 @@ namespace XIVComboExpandedPlugin.Combos
                             return a2;
 
                         return a2.Data.ChargeCooldownRemaining < a1.Data.CooldownRemaining
-                            ? a2 : a1;
+                            ? a2
+                            : a1;
                     }
                     else
                     {
                         return a1.Data.CooldownRemaining < a2.Data.CooldownRemaining
-                            ? a1 : a2;
+                            ? a1
+                            : a2;
                     }
                 }
 
@@ -217,7 +221,7 @@ namespace XIVComboExpandedPlugin.Combos
         /// <param name="preset">Preset to check.</param>
         /// <returns>A value indicating whether the preset is enabled.</returns>
         protected static bool IsEnabled(CustomComboPreset preset)
-            => (int)preset < 100 || Service.Configuration.IsEnabled(preset);
+            => (int) preset < 100 || Service.Configuration.IsEnabled(preset);
 
         /// <summary>
         /// Determine if the given preset is not enabled.
@@ -397,6 +401,30 @@ namespace XIVComboExpandedPlugin.Combos
                 return false;
 
             return true;
+        }
+
+        /// <summary>
+        /// Determines if the enemy can be interrupted if they are currently casting.
+        /// </summary>
+        /// <returns>Bool indicating whether they can be interrupted or not.</returns>
+        protected static bool CanInterruptEnemy()
+        {
+            if (CurrentTarget is null)
+                return false;
+            if (CurrentTarget is not BattleChara chara)
+                return false;
+            if (chara.IsCasting)
+                return chara.IsCastInterruptible;
+            return false;
+        }
+        
+        /// <summary>
+        /// Get % of the player health.
+        /// </summary>
+        /// <returns>Bool indicating whether they can be interrupted or not.</returns>
+        protected static double GetPlayerHealth()
+        {
+            return (LocalPlayer.CurrentHp * 100) / LocalPlayer.MaxHp;
         }
     }
 }

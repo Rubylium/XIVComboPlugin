@@ -36,6 +36,7 @@ namespace XIVComboExpandedPlugin.Combos
             ArmyPeon = 116,
             WandererMinet = 3559,
             RadiantFinal = 25785,
+            HeadGraze = 7551,
             BlastArrow = 25784;
 
         public static class PvpSkills
@@ -80,6 +81,7 @@ namespace XIVComboExpandedPlugin.Combos
         public static class Levels
         {
             public const byte
+                HeadGraze = 24,
                 StraightShot = 2,
                 VenomousBite = 6,
                 Bloodletter = 12,
@@ -241,6 +243,11 @@ namespace XIVComboExpandedPlugin.Combos
 
                 if (GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC)
                 {
+                    if (level >= BRD.Levels.HeadGraze && CanInterruptEnemy() && !GetCooldown(BRD.HeadGraze).IsCooldown)
+                    {
+                        return BRD.HeadGraze;
+                    }
+
                     if (!IsOnCooldown(BRD.WandererMinet) && level >= BRD.Levels.WandererMinet &&
                         gauge2.Song == Song.NONE && gauge2.SongTimer <= 2000)
                     {
@@ -322,6 +329,12 @@ namespace XIVComboExpandedPlugin.Combos
                     if (!IsOnCooldown(BRD.Sidewinder) && level >= BRD.Levels.Sidewinder)
                     {
                         return BRD.Sidewinder;
+                    }
+
+                    if ((LocalPlayer.CurrentHp * 100) / LocalPlayer.MaxHp <= 40 &&
+                        IsOffCooldown(ALL.SecondWind) && level >= ALL.Levels.SecondWind)
+                    {
+                        return ALL.SecondWind;
                     }
 
 

@@ -1,15 +1,16 @@
 using System;
-
 using Dalamud.Game.ClientState.JobGauge.Types;
 
 namespace XIVComboExpandedPlugin.Combos
 {
     internal static class MCH
     {
+        public const double GDC = 0.55;
         public const byte JobID = 31;
 
         public const uint
             // Single target
+            Reassemble = 2876,
             CleanShot = 2873,
             HeatedCleanShot = 7413,
             SplitShot = 2866,
@@ -36,23 +37,28 @@ namespace XIVComboExpandedPlugin.Combos
             HotShot = 2872,
             Drill = 16498,
             AirAnchor = 16500,
+            BarrelStabilizer = 7414,
+            Flamethrower = 7418,
             Chainsaw = 25788;
 
         public static class Buffs
         {
             public const ushort
-                Placeholder = 0;
+                Reassemble = 851,
+                Flamethrower = 1205;
         }
 
         public static class Debuffs
         {
             public const ushort
-                Placeholder = 0;
+                Wildfire = 861;
         }
 
         public static class Levels
         {
             public const byte
+                Reassemble = 10,
+                BarrelStabilizer = 66,
                 SlugShot = 2,
                 GaussRound = 15,
                 CleanShot = 26,
@@ -68,7 +74,11 @@ namespace XIVComboExpandedPlugin.Combos
                 HeatedCleanShot = 64,
                 ChargedActionMastery = 74,
                 AirAnchor = 76,
+                AutomatonQueen = 80,
                 QueenOverdrive = 80,
+                RookAutoturret = 40,
+                Flamethrower = 70,
+                HotShot = 4,
                 Chainsaw = 90;
         }
     }
@@ -83,25 +93,155 @@ namespace XIVComboExpandedPlugin.Combos
             {
                 var gauge = GetJobGauge<MCHGauge>();
 
-                if (IsEnabled(CustomComboPreset.MachinistHypercomboFeature))
+                if (GetCooldown(MCH.SplitShot).CooldownRemaining <= MCH.GDC)
                 {
-                    if (gauge.IsOverheated && level >= MCH.Levels.HeatBlast)
+                    if (gauge.IsOverheated && level >= MCH.Levels.HeatBlast && !HasEffect(MCH.Buffs.Reassemble))
                         return MCH.HeatBlast;
+
+
+                    if (level >= MCH.Levels.AirAnchor && IsOffCooldown(MCH.AirAnchor) &&
+                        HasEffect(MCH.Buffs.Reassemble))
+                    {
+                        return MCH.AirAnchor;
+                    }
+
+                    if (level >= MCH.Levels.AirAnchor && IsOffCooldown(MCH.AirAnchor) &&
+                        GetCooldown(MCH.Reassemble).CooldownRemaining > 10)
+                    {
+                        return MCH.AirAnchor;
+                    }
+
+                    if (level < MCH.Levels.AirAnchor && level >= MCH.Levels.HotShot && IsOffCooldown(MCH.HotShot) &&
+                        HasEffect(MCH.Buffs.Reassemble))
+                    {
+                        return MCH.HotShot;
+                    }
+
+                    if (level < MCH.Levels.AirAnchor && level >= MCH.Levels.AirAnchor && IsOffCooldown(MCH.HotShot) &&
+                        GetCooldown(MCH.Reassemble).CooldownRemaining > 10)
+                    {
+                        return MCH.HotShot;
+                    }
+
+
+                    if (level >= MCH.Levels.Drill && IsOffCooldown(MCH.Drill) &&
+                        HasEffect(MCH.Buffs.Reassemble))
+                    {
+                        return MCH.Drill;
+                    }
+
+                    if (level >= MCH.Levels.Drill && IsOffCooldown(MCH.Drill) &&
+                        GetCooldown(MCH.Reassemble).CooldownRemaining > 10)
+                    {
+                        return MCH.Drill;
+                    }
+
+
+                    if (comboTime > 0 && !HasEffect(MCH.Buffs.Reassemble))
+                    {
+                        if (lastComboMove == MCH.SlugShot && level >= MCH.Levels.CleanShot)
+                            // Heated
+                            return OriginalHook(MCH.CleanShot);
+
+                        if (lastComboMove == MCH.SplitShot && level >= MCH.Levels.SlugShot)
+                            // Heated
+                            return OriginalHook(MCH.SlugShot);
+                    }
+
+                    // Heated
+                    if (!HasEffect(MCH.Buffs.Flamethrower) && !HasEffect(MCH.Buffs.Reassemble))
+                    {
+                        return OriginalHook(MCH.SplitShot);
+                    }
                 }
 
-                if (comboTime > 0)
+                if (!HasEffect(MCH.Buffs.Reassemble))
                 {
-                    if (lastComboMove == MCH.SlugShot && level >= MCH.Levels.CleanShot)
-                        // Heated
-                        return OriginalHook(MCH.CleanShot);
+                    if (level >= ALL.Levels.HeadGraze && CanInterruptEnemy() && !GetCooldown(ALL.HeadGraze).IsCooldown)
+                    {
+                        return ALL.HeadGraze;
+                    }
 
-                    if (lastComboMove == MCH.SplitShot && level >= MCH.Levels.SlugShot)
-                        // Heated
-                        return OriginalHook(MCH.SlugShot);
+                    if ((LocalPlayer.CurrentHp * 100) / LocalPlayer.MaxHp <= 40 &&
+                        IsOffCooldown(ALL.SecondWind) && level >= ALL.Levels.SecondWind)
+                    {
+                        return ALL.SecondWind;
+                    }
+
+                    if (TargetHasEffect(MCH.Debuffs.Wildfire) &&
+                        FindTargetEffect(MCH.Debuffs.Wildfire).RemainingTime <= 2)
+                    {
+                        return MCH.Detonator;
+                    }
+
+                    if (level >= MCH.Levels.Wildfire && IsOffCooldown(MCH.Wildfire) &&
+                        !TargetHasEffect(MCH.Debuffs.Wildfire) && gauge.IsOverheated)
+                    {
+                        return MCH.Wildfire;
+                    }
+
+
+                    if (level >= MCH.Levels.BarrelStabilizer && IsOffCooldown(MCH.BarrelStabilizer) &&
+                        gauge.Heat <= 50)
+                    {
+                        return MCH.BarrelStabilizer;
+                    }
+
+                    if (level < MCH.Levels.AutomatonQueen && level >= MCH.Levels.RookAutoturret &&
+                        IsOffCooldown(MCH.RookAutoturret) && gauge.Battery >= 50)
+                    {
+                        return MCH.RookAutoturret;
+                    }
+
+                    if (level >= MCH.Levels.AutomatonQueen && IsOffCooldown(MCH.AutomatonQueen) &&
+                        gauge.Battery >= 50)
+                    {
+                        return MCH.AutomatonQueen;
+                    }
+
+                    if (level >= MCH.Levels.Hypercharge && IsOffCooldown(MCH.Hypercharge) && gauge.Heat >= 50 &&
+                        !IsOffCooldown(MCH.Reassemble))
+                    {
+                        return MCH.Hypercharge;
+                    }
+
+                    if (level >= MCH.Levels.Hypercharge && IsOffCooldown(MCH.Hypercharge) && gauge.Heat >= 50)
+                    {
+                        return MCH.Hypercharge;
+                    }
+
+
+                    if (level >= MCH.Levels.Ricochet && GetCooldown(MCH.Ricochet).RemainingCharges >= 1 &&
+                        !IsOffCooldown(MCH.Reassemble))
+                    {
+                        return MCH.Ricochet;
+                    }
+
+                    if (level >= MCH.Levels.GaussRound && GetCooldown(MCH.GaussRound).RemainingCharges >= 1 &&
+                        !IsOffCooldown(MCH.Reassemble))
+                    {
+                        return MCH.GaussRound;
+                    }
+
+
+                    if (level >= MCH.Levels.Reassemble && IsOffCooldown(MCH.Reassemble))
+                    {
+                        if (IsOffCooldown(MCH.Drill) && level >= MCH.Levels.Drill)
+                        {
+                            return MCH.Reassemble;
+                        }
+
+                        if (IsOffCooldown(MCH.AirAnchor) && level >= MCH.Levels.AirAnchor)
+                        {
+                            return MCH.Reassemble;
+                        }
+
+                        if (IsOffCooldown(MCH.Chainsaw) && level >= MCH.Levels.Chainsaw)
+                        {
+                            return MCH.Reassemble;
+                        }
+                    }
                 }
-
-                // Heated
-                return OriginalHook(MCH.SplitShot);
             }
 
             return actionID;
@@ -110,7 +250,8 @@ namespace XIVComboExpandedPlugin.Combos
 
     internal class MachinistGaussRoundRicochet : CustomCombo
     {
-        protected internal override CustomComboPreset Preset { get; } = CustomComboPreset.MachinistGaussRoundRicochetFeature;
+        protected internal override CustomComboPreset Preset { get; } =
+            CustomComboPreset.MachinistGaussRoundRicochetFeature;
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
@@ -219,11 +360,13 @@ namespace XIVComboExpandedPlugin.Combos
 
     internal class MachinistDrillAirAnchorChainsaw : CustomCombo
     {
-        protected internal override CustomComboPreset Preset { get; } = CustomComboPreset.MachinistHotShotDrillChainsawFeature;
+        protected internal override CustomComboPreset Preset { get; } =
+            CustomComboPreset.MachinistHotShotDrillChainsawFeature;
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            if (actionID == MCH.HotShot || actionID == MCH.AirAnchor || actionID == MCH.Drill || actionID == MCH.Chainsaw)
+            if (actionID == MCH.HotShot || actionID == MCH.AirAnchor || actionID == MCH.Drill ||
+                actionID == MCH.Chainsaw)
             {
                 if (level >= MCH.Levels.Chainsaw)
                     return CalcBestAction(actionID, MCH.Chainsaw, MCH.AirAnchor, MCH.Drill);
@@ -243,7 +386,8 @@ namespace XIVComboExpandedPlugin.Combos
 
     internal class MachinistAirAnchorChainsaw : CustomCombo
     {
-        protected internal override CustomComboPreset Preset { get; } = CustomComboPreset.MachinistHotShotChainsawFeature;
+        protected internal override CustomComboPreset Preset { get; } =
+            CustomComboPreset.MachinistHotShotChainsawFeature;
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {

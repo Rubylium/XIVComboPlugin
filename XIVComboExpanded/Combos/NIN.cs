@@ -108,11 +108,6 @@ namespace XIVComboExpandedPlugin.Combos
                     }
                 }
 
-                if (level >= NIN.Levels.TrickAttack && HasEffect(NIN.Buffs.Hidden) && IsOffCooldown(NIN.TrickAttack))
-                {
-                    return NIN.TrickAttack;
-                }
-
                 if (GetCooldown(NIN.SpinningEdge).CooldownRemaining <= NIN.GDC)
                 {
                     if (level >= NIN.Levels.Huraijin && IsOffCooldown(NIN.Huraijin) && gauge.HutonTimer <= 1000)

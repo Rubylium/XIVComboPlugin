@@ -5,6 +5,7 @@ namespace XIVComboExpandedPlugin.Combos
     internal static class GNB
     {
         public const byte JobID = 37;
+        public const double GDC = 0.55;
 
         public const uint
             KeenEdge = 16137,
@@ -24,6 +25,8 @@ namespace XIVComboExpandedPlugin.Combos
             FatedCircle = 16163,
             Bloodfest = 16164,
             Hypervelocity = 25759,
+            LightningShot = 16143,
+            BlastingZone = 16165,
             DoubleDown = 25760;
 
         public static class Buffs
@@ -45,6 +48,8 @@ namespace XIVComboExpandedPlugin.Combos
         public static class Levels
         {
             public const byte
+                LightningShot = 15,
+                BlastingZone = 80,
                 NoMercy = 2,
                 BrutalShell = 4,
                 SolidBarrel = 26,
@@ -69,33 +74,65 @@ namespace XIVComboExpandedPlugin.Combos
         {
             if (actionID == GNB.SolidBarrel)
             {
-                if (comboTime > 0)
+                var gauge = GetJobGauge<GNBGauge>();
+                if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
+                     CurrentTarget.HitboxRadius) >= 4.0)
                 {
-                    if (lastComboMove == GNB.BrutalShell && level >= GNB.Levels.SolidBarrel)
+                    if (level >= GNB.Levels.LightningShot)
                     {
-                        if (IsEnabled(CustomComboPreset.GunbreakerBurstStrikeFeature))
-                        {
-                            var gauge = GetJobGauge<GNBGauge>();
-                            var maxAmmo = level >= GNB.Levels.CartridgeCharge2 ? 3 : 2;
-
-                            if (IsEnabled(CustomComboPreset.GunbreakerBurstStrikeCont))
-                            {
-                                if (level >= GNB.Levels.EnhancedContinuation && HasEffect(GNB.Buffs.ReadyToBlast))
-                                    return GNB.Hypervelocity;
-                            }
-
-                            if (level >= GNB.Levels.BurstStrike && gauge.Ammo == maxAmmo)
-                                return GNB.BurstStrike;
-                        }
-
-                        return GNB.SolidBarrel;
+                        return GNB.LightningShot;
                     }
-
-                    if (lastComboMove == GNB.KeenEdge && level >= GNB.Levels.BrutalShell)
-                        return GNB.BrutalShell;
                 }
 
-                return GNB.KeenEdge;
+                if (GetCooldown(GNB.KeenEdge).CooldownRemaining <= GNB.GDC)
+                {
+                    if (level >= GNB.Levels.SonicBreak && IsOffCooldown(GNB.SonicBreak))
+                    {
+                        return GNB.SonicBreak;
+                    }
+
+                    if (comboTime > 0)
+                    {
+                        if (lastComboMove == GNB.BrutalShell && level >= GNB.Levels.SolidBarrel)
+                        {
+                            if (IsEnabled(CustomComboPreset.GunbreakerBurstStrikeFeature))
+                            {
+                                var maxAmmo = level >= GNB.Levels.CartridgeCharge2 ? 3 : 2;
+
+                                if (IsEnabled(CustomComboPreset.GunbreakerBurstStrikeCont))
+                                {
+                                    if (level >= GNB.Levels.EnhancedContinuation && HasEffect(GNB.Buffs.ReadyToBlast))
+                                        return GNB.Hypervelocity;
+                                }
+
+                                if (level >= GNB.Levels.BurstStrike && gauge.Ammo == maxAmmo)
+                                    return GNB.BurstStrike;
+                            }
+
+                            return GNB.SolidBarrel;
+                        }
+
+                        if (lastComboMove == GNB.KeenEdge && level >= GNB.Levels.BrutalShell)
+                            return GNB.BrutalShell;
+                    }
+
+                    return GNB.KeenEdge;
+                }
+
+                if (level >= GNB.Levels.Bloodfest && IsOffCooldown(GNB.Bloodfest) && gauge.Ammo < 2)
+                {
+                    return GNB.Bloodfest;
+                }
+
+                if (level >= GNB.Levels.BlastingZone && IsOffCooldown(GNB.BlastingZone))
+                {
+                    return GNB.BlastingZone;
+                }
+
+                if (level >= GNB.Levels.BowShock && IsOffCooldown(GNB.BowShock))
+                {
+                    return GNB.BowShock;
+                }
             }
 
             return actionID;
@@ -168,7 +205,8 @@ namespace XIVComboExpandedPlugin.Combos
 
     internal class GunbreakerBowShockSonicBreak : CustomCombo
     {
-        protected internal override CustomComboPreset Preset { get; } = CustomComboPreset.GunbreakerBowShockSonicBreakFeature;
+        protected internal override CustomComboPreset Preset { get; } =
+            CustomComboPreset.GunbreakerBowShockSonicBreakFeature;
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {

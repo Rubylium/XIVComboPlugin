@@ -32,6 +32,10 @@ namespace XIVComboExpandedPlugin.Combos
             Onslaugth = 7386,
             Tomahawk = 46,
             Orogeny = 25752,
+            Interject = 7538,
+            Equilibrium = 3552,
+            Bloodwhetting = 25751,
+            ThrillOfBattle = 40,
             PrimalRend = 25753;
 
         public static class Buffs
@@ -70,6 +74,11 @@ namespace XIVComboExpandedPlugin.Combos
                 Onslaugth = 62,
                 Tomahawk = 15,
                 Orogeny = 86,
+                Interject = 18,
+                Equilibrium = 58,
+                Bloodwhetting = 82,
+                RawIntuition = 56,
+                ThrillOfBattle = 30,
                 PrimalRend = 90;
         }
     }
@@ -157,6 +166,24 @@ namespace XIVComboExpandedPlugin.Combos
                     return WAR.HeavySwing;
                 }
 
+                if (level >= WAR.Levels.Interject && CanInterruptEnemy() && !GetCooldown(WAR.Interject).IsCooldown)
+                {
+                    return WAR.Interject;
+                }
+
+                if (GetPlayerHealth() <= 60 &&
+                    IsOffCooldown(WAR.Equilibrium) && level >= WAR.Levels.Equilibrium)
+                {
+                    return WAR.Equilibrium;
+                }
+
+                if (GetPlayerHealth() <= 50 &&
+                    IsOffCooldown(WAR.ThrillOfBattle) && level >= WAR.Levels.ThrillOfBattle)
+                {
+                    return WAR.ThrillOfBattle;
+                }
+
+
                 if (!HasEffect(WAR.Buffs.InnerRelease))
                 {
                     if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
@@ -188,7 +215,6 @@ namespace XIVComboExpandedPlugin.Combos
                     {
                         return WAR.Infuriate;
                     }
-
 
                     if (level >= WAR.Levels.Upheaval && IsOffCooldown(WAR.Upheaval))
                     {
@@ -257,11 +283,40 @@ namespace XIVComboExpandedPlugin.Combos
                     return WAR.Overpower;
                 }
 
+                if (GetPlayerHealth() <= 50 &&
+                    IsOffCooldown(WAR.Bloodwhetting) && level >= WAR.Levels.Bloodwhetting)
+                {
+                    return WAR.Bloodwhetting;
+                }
+
+                if (GetPlayerHealth() <= 50 &&
+                    IsOffCooldown(WAR.RawIntuition) && level >= WAR.Levels.RawIntuition)
+                {
+                    return WAR.RawIntuition;
+                }
+
+                if (GetPlayerHealth() <= 60 &&
+                    IsOffCooldown(WAR.Equilibrium) && level >= WAR.Levels.Equilibrium)
+                {
+                    return WAR.Equilibrium;
+                }
+
+                if (GetPlayerHealth() <= 40 &&
+                    IsOffCooldown(WAR.ThrillOfBattle) && level >= WAR.Levels.ThrillOfBattle)
+                {
+                    return WAR.ThrillOfBattle;
+                }
+
                 if (level >= WAR.Levels.InnerRelease && HasEffect(WAR.Buffs.InnerRelease))
                     return WAR.Decimate;
 
                 if (level >= WAR.Levels.Orogeny && IsOffCooldown(WAR.Orogeny))
                     return WAR.Orogeny;
+
+                if (level < WAR.Levels.Orogeny && level >= WAR.Levels.Upheaval && IsOffCooldown(WAR.Upheaval))
+                {
+                    return WAR.Upheaval;
+                }
             }
 
             return actionID;

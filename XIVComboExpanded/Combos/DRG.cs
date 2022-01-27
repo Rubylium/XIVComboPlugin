@@ -4,6 +4,7 @@ namespace XIVComboExpandedPlugin.Combos
 {
     internal static class DRG
     {
+        public const double GDC = 0.55;
         public const byte ClassID = 4;
         public const byte JobID = 22;
 
@@ -13,7 +14,9 @@ namespace XIVComboExpandedPlugin.Combos
             VorpalThrust = 78,
             Disembowel = 87,
             FullThrust = 84,
+            PiercingTalon = 90,
             ChaosThrust = 88,
+            LifeSurge = 83,
             HeavensThrust = 25771,
             ChaoticSpring = 25772,
             WheelingThrust = 3556,
@@ -35,6 +38,10 @@ namespace XIVComboExpandedPlugin.Combos
             MirageDive = 7399,
             // Dragon
             Stardiver = 16480,
+            LanceCharge = 85,
+            DragonSight = 7398,
+            BattleLitany = 3557,
+            Nastond = 7400,
             WyrmwindThrust = 25773;
 
         public static class Buffs
@@ -42,20 +49,29 @@ namespace XIVComboExpandedPlugin.Combos
             public const ushort
                 SharperFangAndClaw = 802,
                 EnhancedWheelingThrust = 803,
+                LifeSurge = 116,
+                LanceCharge = 1864,
+                DraconianFire = 1863,
+                DragonSight = 1910,
                 DiveReady = 1243;
         }
 
         public static class Debuffs
         {
             public const ushort
-                Placeholder = 0;
+                ChaoticSpring = 2719;
         }
 
         public static class Levels
         {
             public const byte
+                Nastond = 70,
+                Jump = 30,
+                LanceCharge = 30,
                 VorpalThrust = 4,
                 Disembowel = 18,
+                BattleLitany = 52,
+                PiercingTalon = 15,
                 FullThrust = 26,
                 SpineshatterDive = 45,
                 DragonfireDive = 50,
@@ -71,6 +87,8 @@ namespace XIVComboExpandedPlugin.Combos
                 CoerthanTorment = 72,
                 HighJump = 74,
                 RaidenThrust = 76,
+                WyrmwindThrust = 90,
+                DragonSight = 66,
                 Stardiver = 80;
         }
     }
@@ -114,7 +132,8 @@ namespace XIVComboExpandedPlugin.Combos
                         if (lastComboMove == DRG.SonicThrust && level >= DRG.Levels.CoerthanTorment)
                             return DRG.CoerthanTorment;
 
-                        if ((lastComboMove == DRG.DoomSpike || lastComboMove == DRG.DraconianFury) && level >= DRG.Levels.SonicThrust)
+                        if ((lastComboMove == DRG.DoomSpike || lastComboMove == DRG.DraconianFury) &&
+                            level >= DRG.Levels.SonicThrust)
                             return DRG.SonicThrust;
                     }
 
@@ -137,7 +156,8 @@ namespace XIVComboExpandedPlugin.Combos
             {
                 if (IsEnabled(CustomComboPreset.DragoonFangThrustFeature))
                 {
-                    if (level >= DRG.Levels.FangAndClaw && (HasEffect(DRG.Buffs.SharperFangAndClaw) || HasEffect(DRG.Buffs.EnhancedWheelingThrust)))
+                    if (level >= DRG.Levels.FangAndClaw && (HasEffect(DRG.Buffs.SharperFangAndClaw) ||
+                                                            HasEffect(DRG.Buffs.EnhancedWheelingThrust)))
                         return DRG.WheelingThrust;
                 }
 
@@ -155,7 +175,8 @@ namespace XIVComboExpandedPlugin.Combos
                             // ChaoticSpring
                             return OriginalHook(DRG.ChaosThrust);
 
-                        if ((lastComboMove == DRG.TrueThrust || lastComboMove == DRG.RaidenThrust) && level >= DRG.Levels.Disembowel)
+                        if ((lastComboMove == DRG.TrueThrust || lastComboMove == DRG.RaidenThrust) &&
+                            level >= DRG.Levels.Disembowel)
                             return DRG.Disembowel;
                     }
 
@@ -177,15 +198,20 @@ namespace XIVComboExpandedPlugin.Combos
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            if (actionID == DRG.FullThrust || actionID == DRG.HeavensThrust)
+            if (actionID == DRG.FullThrust)
             {
-                if (IsEnabled(CustomComboPreset.DragoonFangThrustFeature))
+                var gauge = GetJobGauge<DRGGauge>();
+
+                if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
+                     CurrentTarget.HitboxRadius) >= 4.0)
                 {
-                    if (level >= DRG.Levels.FangAndClaw && (HasEffect(DRG.Buffs.SharperFangAndClaw) || HasEffect(DRG.Buffs.EnhancedWheelingThrust)))
-                        return DRG.FangAndClaw;
+                    if (level >= DRG.Levels.PiercingTalon)
+                    {
+                        return DRG.PiercingTalon;
+                    }
                 }
 
-                if (IsEnabled(CustomComboPreset.DragoonFullThrustCombo))
+                if (GetCooldown(DRG.TrueThrust).CooldownRemaining <= DRG.GDC)
                 {
                     if (level >= DRG.Levels.WheelingThrust && HasEffect(DRG.Buffs.EnhancedWheelingThrust))
                         return DRG.WheelingThrust;
@@ -193,21 +219,156 @@ namespace XIVComboExpandedPlugin.Combos
                     if (level >= DRG.Levels.FangAndClaw && HasEffect(DRG.Buffs.SharperFangAndClaw))
                         return DRG.FangAndClaw;
 
-                    if (comboTime > 0)
+                    var ShouldDoCombo = true;
+                    if (lastComboMove != DRG.WheelingThrust)
                     {
-                        if (lastComboMove == DRG.VorpalThrust && level >= DRG.Levels.FullThrust)
-                            // Heavens' Thrust
-                            return OriginalHook(DRG.FullThrust);
-
-                        if ((lastComboMove == DRG.TrueThrust || lastComboMove == DRG.RaidenThrust) && level >= DRG.Levels.VorpalThrust)
-                            return DRG.VorpalThrust;
+                        if (level >= DRG.Levels.WyrmwindThrust && gauge.FirstmindsFocusCount == 2)
+                        {
+                            ShouldDoCombo = false;
+                        }
                     }
 
-                    if (IsEnabled(CustomComboPreset.DragoonFullThrustComboOption))
-                        return DRG.VorpalThrust;
+                    if (ShouldDoCombo)
+                    {
+                        if (comboTime > 0)
+                        {
+                            if (!TargetHasEffect(DRG.Debuffs.ChaoticSpring) ||
+                                FindTargetEffect(DRG.Debuffs.ChaoticSpring).RemainingTime <= 10 ||
+                                HasEffect(DRG.Buffs.LanceCharge) || HasEffect(DRG.Buffs.DragonSight))
+                            {
+                                if (lastComboMove == DRG.Disembowel && level >= DRG.Levels.ChaosThrust)
+                                    // ChaoticSpring
+                                    return OriginalHook(DRG.ChaosThrust);
 
-                    // Vorpal Thrust
-                    return OriginalHook(DRG.TrueThrust);
+                                if ((lastComboMove == DRG.TrueThrust || lastComboMove == DRG.RaidenThrust) &&
+                                    level >= DRG.Levels.Disembowel)
+                                    return DRG.Disembowel;
+                            }
+                        }
+
+                        if (comboTime > 0)
+                        {
+                            if (lastComboMove == DRG.VorpalThrust && level >= DRG.Levels.FullThrust)
+                                // Heavens' Thrust
+                                return OriginalHook(DRG.FullThrust);
+
+                            if ((lastComboMove == DRG.TrueThrust || lastComboMove == DRG.RaidenThrust) &&
+                                level >= DRG.Levels.VorpalThrust)
+                                return DRG.VorpalThrust;
+                        }
+
+
+                        // Vorpal Thrust
+                        return OriginalHook(DRG.TrueThrust);
+                    }
+                }
+
+                if ((LocalPlayer.CurrentHp * 100) / LocalPlayer.MaxHp <= 40 &&
+                    IsOffCooldown(ALL.SecondWind) && level >= ALL.Levels.SecondWind)
+                {
+                    return ALL.SecondWind;
+                }
+
+                if ((LocalPlayer.CurrentHp * 100) / LocalPlayer.MaxHp <= 30 &&
+                    IsOffCooldown(ALL.Bloodbath) && level >= ALL.Levels.Bloodbath)
+                {
+                    return ALL.Bloodbath;
+                }
+
+                if (level >= DRG.Levels.LanceCharge && IsOffCooldown(DRG.LanceCharge))
+                {
+                    return DRG.LanceCharge;
+                }
+
+                if (level >= DRG.Levels.BattleLitany && IsOffCooldown(DRG.BattleLitany))
+                {
+                    return DRG.BattleLitany;
+                }
+
+                if (level >= DRG.Levels.DragonSight && IsOffCooldown(DRG.DragonSight))
+                {
+                    return DRG.DragonSight;
+                }
+
+                if (level >= ALL.Levels.Feint && IsOffCooldown(ALL.Feint))
+                {
+                    return ALL.Feint;
+                }
+
+
+                if (level >= DRG.Levels.WyrmwindThrust && gauge.FirstmindsFocusCount == 2)
+                    return DRG.WyrmwindThrust;
+
+                if (level >= DRG.Levels.HighJump && IsOffCooldown(DRG.HighJump) &&
+                    GetCooldown(DRG.TrueThrust).CooldownRemaining <= DRG.GDC + 0.40)
+                {
+                    return DRG.HighJump;
+                }
+
+                if (level < DRG.Levels.HighJump && level >= DRG.Levels.Jump && IsOffCooldown(DRG.Jump) &&
+                    GetCooldown(DRG.TrueThrust).CooldownRemaining <= DRG.GDC + 0.30)
+                {
+                    return DRG.Jump;
+                }
+
+                if (level >= DRG.Levels.MirageDive && IsOffCooldown(DRG.MirageDive) && level >= DRG.Levels.HighJump &&
+                    HasEffect(DRG.Buffs.DiveReady))
+                {
+                    return DRG.MirageDive;
+                }
+
+
+                if (level >= DRG.Levels.Geirskogul && IsOffCooldown(DRG.Geirskogul) && level >= DRG.Levels.HighJump &&
+                    gauge.EyeCount == 2 && GetCooldown(DRG.TrueThrust).CooldownRemaining <= DRG.GDC + 0.30)
+                {
+                    return DRG.Geirskogul;
+                }
+
+                if (level >= DRG.Levels.Geirskogul && IsOffCooldown(DRG.Geirskogul) &&
+                    GetCooldown(DRG.TrueThrust).CooldownRemaining <= DRG.GDC + 0.30)
+                {
+                    if (GetCooldown(DRG.HighJump).CooldownRemaining >= 20)
+                    {
+                        return DRG.Geirskogul;
+                    }
+
+                    if (level < DRG.Levels.HighJump)
+                    {
+                        return DRG.Geirskogul;
+                    }
+                }
+
+                if (GetCooldown(DRG.LifeSurge).RemainingCharges > 0 && !HasEffect(DRG.Buffs.LifeSurge))
+                {
+                    return DRG.LifeSurge;
+                }
+
+
+                if (level >= DRG.Levels.Nastond && IsOffCooldown(DRG.Nastond) && gauge.IsLOTDActive &&
+                    GetCooldown(DRG.TrueThrust).CooldownRemaining <= DRG.GDC + 0.30)
+                {
+                    return DRG.Nastond;
+                }
+
+                if (level >= DRG.Levels.Stardiver && IsOffCooldown(DRG.Stardiver) && gauge.IsLOTDActive &&
+                    GetCooldown(DRG.TrueThrust).CooldownRemaining <= DRG.GDC + 0.30)
+                {
+                    return DRG.Stardiver;
+                }
+
+                if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
+                     CurrentTarget.HitboxRadius) <= 4.5 &&
+                    GetCooldown(DRG.TrueThrust).CooldownRemaining <= DRG.GDC + 0.30)
+                {
+                    if (level >= DRG.Levels.DragonfireDive && IsOffCooldown(DRG.DragonfireDive))
+                    {
+                        return DRG.DragonfireDive;
+                    }
+
+                    if (level >= DRG.Levels.SpineshatterDive && GetCooldown(DRG.SpineshatterDive).RemainingCharges > 0)
+                    {
+                        return DRG.SpineshatterDive;
+                    }
                 }
             }
 
@@ -227,14 +388,16 @@ namespace XIVComboExpandedPlugin.Combos
 
                 if (IsEnabled(CustomComboPreset.DragoonStardiverNastrondFeature))
                 {
-                    if (level >= DRG.Levels.Geirskogul && (!gauge.IsLOTDActive || IsOffCooldown(DRG.Nastrond) || IsOnCooldown(DRG.Stardiver)))
+                    if (level >= DRG.Levels.Geirskogul && (!gauge.IsLOTDActive || IsOffCooldown(DRG.Nastrond) ||
+                                                           IsOnCooldown(DRG.Stardiver)))
                         // Nastrond
                         return OriginalHook(DRG.Geirskogul);
                 }
 
                 if (IsEnabled(CustomComboPreset.DragoonStardiverDragonfireDiveFeature))
                 {
-                    if (level < DRG.Levels.Stardiver || !gauge.IsLOTDActive || IsOnCooldown(DRG.Stardiver) || (IsOffCooldown(DRG.DragonfireDive) && gauge.LOTDTimer > 7.5))
+                    if (level < DRG.Levels.Stardiver || !gauge.IsLOTDActive || IsOnCooldown(DRG.Stardiver) ||
+                        (IsOffCooldown(DRG.DragonfireDive) && gauge.LOTDTimer > 7.5))
                         return DRG.DragonfireDive;
                 }
             }

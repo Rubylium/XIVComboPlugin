@@ -182,6 +182,34 @@ namespace XIVComboExpandedPlugin.Combos
                     var windbite = FindTargetEffect(BRD.Debuffs.Windbite);
                     var stormbite = FindTargetEffect(BRD.Debuffs.Stormbite);
 
+                    var causticBite = FindTargetEffect(BRD.Debuffs.CausticBite);
+                    var VenomousBite = FindTargetEffect(BRD.Debuffs.VenomousBite);
+
+                    if (IsOffCooldown(BRD.IronJaws) && level >= BRD.Levels.IronJaws &&
+                        GetCooldown(BRD.BurstShot).CooldownRemaining <= BRD.GDC)
+                    {
+                        if (TargetHasEffect(BRD.Debuffs.VenomousBite) && VenomousBite.RemainingTime <= 7)
+                        {
+                            return BRD.IronJaws;
+                        }
+
+                        if (TargetHasEffect(BRD.Debuffs.CausticBite) && causticBite.RemainingTime <= 7)
+                        {
+                            return BRD.IronJaws;
+                        }
+
+                        if (TargetHasEffect(BRD.Debuffs.Windbite) && windbite.RemainingTime <= 7)
+                        {
+                            return BRD.IronJaws;
+                        }
+
+                        if (TargetHasEffect(BRD.Debuffs.Stormbite) && stormbite.RemainingTime <= 7)
+                        {
+                            return BRD.IronJaws;
+                        }
+                    }
+
+
                     if (level >= BRD.Levels.Stormbite && !TargetHasEffect(BRD.Debuffs.Stormbite))
                     {
                         return BRD.Stormbite;
@@ -195,21 +223,18 @@ namespace XIVComboExpandedPlugin.Combos
                     }
 
 
-                    if (level >= BRD.Levels.Stormbite && stormbite.RemainingTime <= 10)
+                    if (level >= BRD.Levels.Stormbite && stormbite.RemainingTime <= 7)
                     {
                         return BRD.Stormbite;
                     }
 
 
                     if (level < BRD.Levels.Stormbite && level >= BRD.Levels.Windbite &&
-                        windbite.RemainingTime <= 10)
+                        windbite.RemainingTime <= 7)
                     {
                         return BRD.Windbite;
                     }
 
-
-                    var causticBite = FindTargetEffect(BRD.Debuffs.CausticBite);
-                    var VenomousBite = FindTargetEffect(BRD.Debuffs.VenomousBite);
 
                     if (level >= BRD.Levels.CausticBite && !TargetHasEffect(BRD.Debuffs.CausticBite))
                     {
@@ -224,40 +249,16 @@ namespace XIVComboExpandedPlugin.Combos
                     }
 
 
-                    if (level >= BRD.Levels.CausticBite && causticBite.RemainingTime <= 10)
+                    if (level >= BRD.Levels.CausticBite && causticBite.RemainingTime <= 7)
                     {
                         return BRD.CausticBite;
                     }
 
 
                     if (level < BRD.Levels.CausticBite && level >= BRD.Levels.VenomousBite &&
-                        VenomousBite.RemainingTime <= 10)
+                        VenomousBite.RemainingTime <= 7)
                     {
                         return BRD.VenomousBite;
-                    }
-
-                    if (IsOffCooldown(BRD.IronJaws) && level >= BRD.Levels.IronJaws &&
-                        GetCooldown(BRD.BurstShot).CooldownRemaining <= BRD.GDC)
-                    {
-                        if (VenomousBite is not null && VenomousBite.RemainingTime <= 7)
-                        {
-                            return BRD.IronJaws;
-                        }
-
-                        if (causticBite is not null && causticBite.RemainingTime <= 7)
-                        {
-                            return BRD.IronJaws;
-                        }
-
-                        if (windbite is not null && windbite.RemainingTime <= 7)
-                        {
-                            return BRD.IronJaws;
-                        }
-
-                        if (stormbite is not null && stormbite.RemainingTime <= 7)
-                        {
-                            return BRD.IronJaws;
-                        }
                     }
                 }
 

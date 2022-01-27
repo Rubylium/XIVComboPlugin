@@ -37,6 +37,8 @@ namespace XIVComboExpandedPlugin.Combos
             WandererMinet = 3559,
             RadiantFinal = 25785,
             HeadGraze = 7551,
+            Troubadour = 7405,
+            NatureMinne = 7408,
             BlastArrow = 25784;
 
         public static class PvpSkills
@@ -72,7 +74,7 @@ namespace XIVComboExpandedPlugin.Combos
         public static class Debuffs
         {
             public const ushort
-                VenomousBite = 126,
+                VenomousBite = 124,
                 Windbite = 129,
                 CausticBite = 1200,
                 Stormbite = 1201;
@@ -81,6 +83,8 @@ namespace XIVComboExpandedPlugin.Combos
         public static class Levels
         {
             public const byte
+                NatureMinne = 66,
+                Troubadour = 62,
                 HeadGraze = 24,
                 StraightShot = 2,
                 VenomousBite = 6,
@@ -150,124 +154,140 @@ namespace XIVComboExpandedPlugin.Combos
                 }
 
 
-                if (IsEnabled(CustomComboPreset.BardStraightShotUpgradeFeature))
+                if (!IsOnCooldown(BRD.StraightShot) && level >= BRD.Levels.StraightShot &&
+                    HasEffect(BRD.Buffs.StraightShotReady))
+                    // Refulgent Arrow
+                    return OriginalHook(BRD.StraightShot);
+
+
+                var gauge = GetJobGauge<BRDGauge>();
+
+
+                if (!IsOnCooldown(BRD.ApexArrow) && gauge.SoulVoice >= 80 &&
+                    gauge.Song == Song.MAGE && gauge.SongTimer >= 21000)
+                    return BRD.ApexArrow;
+
+                if (!IsOnCooldown(BRD.ApexArrow) && gauge.SoulVoice >= 80 &&
+                    HasEffect(BRD.Buffs.RagingStrike) &&
+                    HasEffect(BRD.Buffs.BattleVoice))
+                    return BRD.ApexArrow;
+
+                if (!IsOnCooldown(BRD.BlastArrow) && level >= BRD.Levels.BlastShot &&
+                    HasEffect(BRD.Buffs.BlastShotReady))
+                    return BRD.BlastArrow;
+
+
+                if (GetCooldown(BRD.HeavyShot).CooldownRemaining < BRD.GDC)
                 {
-                    if (!IsOnCooldown(BRD.StraightShot) && level >= BRD.Levels.StraightShot &&
-                        HasEffect(BRD.Buffs.StraightShotReady))
-                        // Refulgent Arrow
-                        return OriginalHook(BRD.StraightShot);
-                }
+                    var windbite = FindTargetEffect(BRD.Debuffs.Windbite);
+                    var stormbite = FindTargetEffect(BRD.Debuffs.Stormbite);
 
-
-                if (IsEnabled(CustomComboPreset.BardApexFeature) && level >= BRD.Levels.ApexArrow)
-                {
-                    var gauge = GetJobGauge<BRDGauge>();
-
-
-                    if (!IsOnCooldown(BRD.ApexArrow) && gauge.SoulVoice >= 80 &&
-                        gauge.Song == Song.MAGE && gauge.SongTimer >= 21000)
-                        return BRD.ApexArrow;
-
-                    if (!IsOnCooldown(BRD.ApexArrow) && gauge.SoulVoice >= 80 &&
-                        HasEffect(BRD.Buffs.RagingStrike) &&
-                        HasEffect(BRD.Buffs.BattleVoice))
-                        return BRD.ApexArrow;
-
-                    if (!IsOnCooldown(BRD.BlastArrow) && level >= BRD.Levels.BlastShot &&
-                        HasEffect(BRD.Buffs.BlastShotReady))
-                        return BRD.BlastArrow;
-                }
-
-
-                var windbite = FindTargetEffect(BRD.Debuffs.Windbite);
-                var stormbite = FindTargetEffect(BRD.Debuffs.Stormbite);
-                if (!IsOnCooldown(BRD.Windbite) && level >= BRD.Levels.Windbite && windbite is null &&
-                    stormbite is null && GetCooldown(BRD.BurstShot).CooldownRemaining <= BRD.GDC)
-                {
-                    if (level >= BRD.Levels.Stormbite)
+                    if (level >= BRD.Levels.Stormbite && !TargetHasEffect(BRD.Debuffs.Stormbite))
                     {
                         return BRD.Stormbite;
                     }
 
-                    if (level >= BRD.Levels.Windbite)
+
+                    if (level < BRD.Levels.Stormbite && level >= BRD.Levels.Windbite &&
+                        !TargetHasEffect(BRD.Debuffs.Windbite))
                     {
                         return BRD.Windbite;
                     }
-                }
 
-                var venomous = FindTargetEffect(BRD.Debuffs.VenomousBite);
-                var causticBite =
-                    FindTargetEffect(BRD.Debuffs.CausticBite);
 
-                if (!IsOnCooldown(BRD.VenomousBite) && level >= BRD.Levels.VenomousBite && venomous is null &&
-                    causticBite is null && GetCooldown(BRD.BurstShot).CooldownRemaining <= BRD.GDC)
-                {
-                    if (level >= BRD.Levels.CausticBite)
+                    if (level >= BRD.Levels.Stormbite && stormbite.RemainingTime <= 10)
+                    {
+                        return BRD.Stormbite;
+                    }
+
+
+                    if (level < BRD.Levels.Stormbite && level >= BRD.Levels.Windbite &&
+                        windbite.RemainingTime <= 10)
+                    {
+                        return BRD.Windbite;
+                    }
+
+
+                    var causticBite = FindTargetEffect(BRD.Debuffs.CausticBite);
+                    var VenomousBite = FindTargetEffect(BRD.Debuffs.VenomousBite);
+
+                    if (level >= BRD.Levels.CausticBite && !TargetHasEffect(BRD.Debuffs.CausticBite))
                     {
                         return BRD.CausticBite;
                     }
 
-                    if (level >= BRD.Levels.VenomousBite)
+
+                    if (level < BRD.Levels.CausticBite && level >= BRD.Levels.VenomousBite &&
+                        !TargetHasEffect(BRD.Debuffs.VenomousBite))
                     {
                         return BRD.VenomousBite;
                     }
+
+
+                    if (level >= BRD.Levels.CausticBite && causticBite.RemainingTime <= 10)
+                    {
+                        return BRD.CausticBite;
+                    }
+
+
+                    if (level < BRD.Levels.CausticBite && level >= BRD.Levels.VenomousBite &&
+                        VenomousBite.RemainingTime <= 10)
+                    {
+                        return BRD.VenomousBite;
+                    }
+
+                    if (IsOffCooldown(BRD.IronJaws) && level >= BRD.Levels.IronJaws &&
+                        GetCooldown(BRD.BurstShot).CooldownRemaining <= BRD.GDC)
+                    {
+                        if (VenomousBite is not null && VenomousBite.RemainingTime <= 7)
+                        {
+                            return BRD.IronJaws;
+                        }
+
+                        if (causticBite is not null && causticBite.RemainingTime <= 7)
+                        {
+                            return BRD.IronJaws;
+                        }
+
+                        if (windbite is not null && windbite.RemainingTime <= 7)
+                        {
+                            return BRD.IronJaws;
+                        }
+
+                        if (stormbite is not null && stormbite.RemainingTime <= 7)
+                        {
+                            return BRD.IronJaws;
+                        }
+                    }
                 }
 
-                if (IsOffCooldown(BRD.IronJaws) && level >= BRD.Levels.IronJaws &&
-                    GetCooldown(BRD.BurstShot).CooldownRemaining <= BRD.GDC)
+
+                if (GetCooldown(BRD.HeavyShot).CooldownRemaining >= BRD.GDC)
                 {
-                    if (venomous is not null && venomous.RemainingTime <= 7)
+                    if (level >= ALL.Levels.HeadGraze && CanInterruptEnemy() && !GetCooldown(ALL.HeadGraze).IsCooldown)
                     {
-                        return BRD.IronJaws;
-                    }
-
-                    if (causticBite is not null && causticBite.RemainingTime <= 7)
-                    {
-                        return BRD.IronJaws;
-                    }
-
-                    if (windbite is not null && windbite.RemainingTime <= 7)
-                    {
-                        return BRD.IronJaws;
-                    }
-
-                    if (stormbite is not null && stormbite.RemainingTime <= 7)
-                    {
-                        return BRD.IronJaws;
-                    }
-                }
-
-
-                gauge2 = GetJobGauge<BRDGauge>();
-
-
-                if (GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC)
-                {
-                    if (level >= BRD.Levels.HeadGraze && CanInterruptEnemy() && !GetCooldown(BRD.HeadGraze).IsCooldown)
-                    {
-                        return BRD.HeadGraze;
+                        return ALL.HeadGraze;
                     }
 
                     if (!IsOnCooldown(BRD.WandererMinet) && level >= BRD.Levels.WandererMinet &&
-                        gauge2.Song == Song.NONE && gauge2.SongTimer <= 2000)
+                        gauge.Song == Song.NONE && gauge.SongTimer <= 2000)
                     {
                         return BRD.WandererMinet;
                     }
 
-                    if (!IsOnCooldown(BRD.Mageballad) && level >= BRD.Levels.Mageballad && gauge2.Song == Song.NONE &&
-                        gauge2.SongTimer <= 12000)
+                    if (!IsOnCooldown(BRD.Mageballad) && level >= BRD.Levels.Mageballad && gauge.Song == Song.NONE &&
+                        gauge.SongTimer <= 12000)
                     {
                         return BRD.Mageballad;
                     }
 
-                    if (level >= BRD.Levels.ArmyPeon && !IsOnCooldown(BRD.ArmyPeon) && gauge2.Song == Song.MAGE &&
-                        gauge2.SongTimer <= 11000)
+                    if (level >= BRD.Levels.ArmyPeon && !IsOnCooldown(BRD.ArmyPeon) && gauge.Song == Song.MAGE &&
+                        gauge.SongTimer <= 11000)
                     {
                         return BRD.ArmyPeon;
                     }
 
-                    gauge2 = GetJobGauge<BRDGauge>();
-                    if (!IsOnCooldown(BRD.ArmyPeon) && level >= BRD.Levels.ArmyPeon && gauge2.Song == Song.NONE)
+                    if (!IsOnCooldown(BRD.ArmyPeon) && level >= BRD.Levels.ArmyPeon && gauge.Song == Song.NONE)
                     {
                         return BRD.ArmyPeon;
                     }
@@ -283,32 +303,32 @@ namespace XIVComboExpandedPlugin.Combos
 
                     if (!IsOnCooldown(BRD.BattleVoice) && level >= BRD.Levels.BattleVoice)
                     {
-                        if (gauge2.Song != Song.NONE)
+                        if (gauge.Song != Song.NONE)
                         {
                             return BRD.BattleVoice;
                         }
                     }
 
                     if (level >= BRD.Levels.WandererMinet && !IsOnCooldown(BRD.WandererMinet) &&
-                        gauge2.Song == Song.ARMY)
+                        gauge.Song == Song.ARMY)
                     {
                         return BRD.WandererMinet;
                     }
 
                     if (!IsOnCooldown(BRD.PitchPerfect) && level >= BRD.Levels.PitchPerfect &&
-                        gauge2.Song == Song.WANDERER && gauge2.Repertoire >= 3)
+                        gauge.Song == Song.WANDERER && gauge.Repertoire >= 3)
                     {
                         return BRD.PitchPerfect;
                     }
 
                     if (!IsOnCooldown(BRD.PitchPerfect) && level >= BRD.Levels.PitchPerfect &&
-                        gauge2.Song == Song.WANDERER && gauge2.Repertoire >= 2 && gauge2.SongTimer <= 9000)
+                        gauge.Song == Song.WANDERER && gauge.Repertoire >= 2 && gauge.SongTimer <= 9000)
                     {
                         return BRD.PitchPerfect;
                     }
 
                     if (!IsOnCooldown(BRD.PitchPerfect) && level >= BRD.Levels.PitchPerfect &&
-                        gauge2.Song == Song.WANDERER && gauge2.Repertoire >= 1 && gauge2.SongTimer <= 6000)
+                        gauge.Song == Song.WANDERER && gauge.Repertoire >= 1 && gauge.SongTimer <= 6000)
                     {
                         return BRD.PitchPerfect;
                     }
@@ -346,20 +366,53 @@ namespace XIVComboExpandedPlugin.Combos
                             return BRD.Bloodletter;
                         }
 
-                        if (gauge2.Song == Song.ARMY && GetCooldown(BRD.Bloodletter).RemainingCharges >= 2)
+                        if (gauge.Song == Song.ARMY && GetCooldown(BRD.Bloodletter).RemainingCharges >= 2)
                         {
                             return BRD.Bloodletter;
                         }
 
-                        if (gauge2.Song == Song.MAGE)
+                        if (gauge.Song == Song.MAGE)
                         {
                             return BRD.Bloodletter;
                         }
 
-                        if (gauge2.Song == Song.WANDERER)
+                        if (gauge.Song == Song.WANDERER)
                         {
                             return BRD.Bloodletter;
                         }
+
+                        if (gauge.Song == Song.NONE)
+                        {
+                            return BRD.Bloodletter;
+                        }
+                    }
+
+
+                    if (level >= BRD.Levels.Troubadour)
+                    {
+                        if (IsOffCooldown(BRD.Troubadour))
+                        {
+                            return BRD.Troubadour;
+                        }
+                    }
+
+                    if (level >= BRD.Levels.NatureMinne)
+                    {
+                        if (IsOffCooldown(BRD.NatureMinne) && GetPlayerHealth() <= 50)
+                        {
+                            return BRD.NatureMinne;
+                        }
+                    }
+
+
+                    if (level >= ALL.Levels.LegGraze && !GetCooldown(ALL.LegGraze).IsCooldown)
+                    {
+                        return ALL.LegGraze;
+                    }
+
+                    if (level >= ALL.Levels.FootGraze && !GetCooldown(ALL.FootGraze).IsCooldown)
+                    {
+                        return ALL.FootGraze;
                     }
                 }
 

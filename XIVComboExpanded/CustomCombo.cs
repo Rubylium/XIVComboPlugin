@@ -417,7 +417,7 @@ namespace XIVComboExpandedPlugin.Combos
                 return chara.IsCastInterruptible;
             return false;
         }
-        
+
         /// <summary>
         /// Get % of the player health.
         /// </summary>
@@ -425,6 +425,28 @@ namespace XIVComboExpandedPlugin.Combos
         protected static double GetPlayerHealth()
         {
             return (LocalPlayer.CurrentHp * 100) / LocalPlayer.MaxHp;
+        }
+
+        /// <summary>
+        /// Get % of the player mana.
+        /// </summary>
+        protected static double GetPlayerMana()
+        {
+            return (LocalPlayer.CurrentMp * 100) / LocalPlayer.MaxMp;
+        }
+
+        /// <summary>
+        /// Get % of the target health.
+        /// </summary>
+        protected static double GetTargetHealth()
+        {
+            if (CurrentTarget is null)
+                return 0;
+            if (CurrentTarget is not BattleChara chara)
+                return 0;
+
+
+            return (chara.CurrentHp * 100) / chara.MaxHp;
         }
     }
 }

@@ -92,6 +92,7 @@ namespace XIVComboExpandedPlugin.Combos
             if (actionID == MCH.CleanShot || actionID == MCH.HeatedCleanShot)
             {
                 var gauge = GetJobGauge<MCHGauge>();
+                var inCombat = HasCondition(Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat);
 
                 if (GetCooldown(MCH.SplitShot).CooldownRemaining <= MCH.GDC)
                 {
@@ -182,7 +183,7 @@ namespace XIVComboExpandedPlugin.Combos
 
 
                     if (level >= MCH.Levels.BarrelStabilizer && IsOffCooldown(MCH.BarrelStabilizer) &&
-                        gauge.Heat <= 50)
+                        gauge.Heat <= 50 && inCombat)
                     {
                         return MCH.BarrelStabilizer;
                     }

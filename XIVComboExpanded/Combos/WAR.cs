@@ -171,6 +171,12 @@ namespace XIVComboExpandedPlugin.Combos
                     return WAR.Interject;
                 }
 
+                if (GetPlayerHealth() <= 70 &&
+                    IsOffCooldown(WAR.RawIntuition) && level >= WAR.Levels.RawIntuition)
+                {
+                    return OriginalHook(WAR.RawIntuition);
+                }
+
                 if (GetPlayerHealth() <= 60 &&
                     IsOffCooldown(WAR.Equilibrium) && level >= WAR.Levels.Equilibrium)
                 {
@@ -283,29 +289,31 @@ namespace XIVComboExpandedPlugin.Combos
                     return WAR.Overpower;
                 }
 
-                if (GetPlayerHealth() <= 50 &&
+
+                if (GetPlayerHealth() <= 70 &&
+                    IsOffCooldown(WAR.ThrillOfBattle) && level >= WAR.Levels.ThrillOfBattle)
+                {
+                    return WAR.ThrillOfBattle;
+                }
+
+                if (GetPlayerHealth() <= 60 &&
                     IsOffCooldown(WAR.Bloodwhetting) && level >= WAR.Levels.Bloodwhetting)
                 {
                     return WAR.Bloodwhetting;
                 }
 
-                if (GetPlayerHealth() <= 50 &&
+                if (GetPlayerHealth() <= 60 &&
                     IsOffCooldown(WAR.RawIntuition) && level >= WAR.Levels.RawIntuition)
                 {
                     return WAR.RawIntuition;
                 }
 
-                if (GetPlayerHealth() <= 60 &&
+                if (GetPlayerHealth() <= 50 &&
                     IsOffCooldown(WAR.Equilibrium) && level >= WAR.Levels.Equilibrium)
                 {
                     return WAR.Equilibrium;
                 }
 
-                if (GetPlayerHealth() <= 40 &&
-                    IsOffCooldown(WAR.ThrillOfBattle) && level >= WAR.Levels.ThrillOfBattle)
-                {
-                    return WAR.ThrillOfBattle;
-                }
 
                 if (level >= WAR.Levels.InnerRelease && HasEffect(WAR.Buffs.InnerRelease))
                     return WAR.Decimate;

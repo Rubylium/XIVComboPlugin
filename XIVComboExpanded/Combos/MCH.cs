@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Dalamud.Game.ClientState.JobGauge.Types;
 
 namespace XIVComboExpandedPlugin.Combos
@@ -53,6 +54,44 @@ namespace XIVComboExpandedPlugin.Combos
             public const ushort
                 Wildfire = 861;
         }
+
+        public static class PvpSkills
+        {
+            public const ushort
+                SpreadShot = 18932,
+                Drill = 17749,
+                AirAnchor = 17750,
+                Bioblaster = 17752,
+                GaussRound = 18933,
+                Ricochet = 17753,
+                Wildfire = 8855,
+                Blank = 8853,
+                Hypercharge = 17754,
+                Tactician = 18934,
+                HeadGraze = 17680,
+                MedicalKit = 18943,
+                HeatBlast = 8851,
+                AutoCrossbow = 17751,
+                HeatedSplitShot = 8848,
+                HeatedSlugShot = 8848,
+                HeatedCleanShot = 8848,
+                Concentrate = 18955,
+                BaseCombo = 18;
+        }
+
+        public static class PvpDebuffs
+        {
+            public const ushort
+                Wildfire = 1323;
+        }
+
+        public static class PvpBuffs
+        {
+            public const ushort
+                Concentrate = 2186,
+                test = 0;
+        }
+
 
         public static class Levels
         {
@@ -242,6 +281,76 @@ namespace XIVComboExpandedPlugin.Combos
                             return MCH.Reassemble;
                         }
                     }
+                }
+            }
+
+            if (actionID == MCH.PvpSkills.HeatedCleanShot || actionID == MCH.PvpSkills.HeatedSlugShot ||
+                actionID == MCH.PvpSkills.HeatedSplitShot)
+            {
+                var gauge = GetJobGauge<MCHGauge>();
+                if (GetCooldown(MCH.PvpSkills.SpreadShot).CooldownRemaining <= MCH.GDC)
+                {
+                    if (IsOffCooldown(MCH.PvpSkills.AutoCrossbow) && gauge.IsOverheated)
+                    {
+                        return MCH.PvpSkills.AutoCrossbow;
+                    }
+
+                    if (IsOffCooldown(MCH.PvpSkills.Drill))
+                    {
+                        return MCH.PvpSkills.Drill;
+                    }
+
+                    if (IsOffCooldown(MCH.PvpSkills.Bioblaster))
+                    {
+                        return MCH.PvpSkills.Bioblaster;
+                    }
+
+
+                    if (IsOffCooldown(MCH.PvpSkills.AirAnchor))
+                    {
+                        return MCH.PvpSkills.AirAnchor;
+                    }
+
+                    if (gauge.IsOverheated)
+                        return MCH.PvpSkills.HeatBlast;
+
+                    return actionID;
+                }
+
+                if (GetPlayerHealth() <= 60 &&
+                    GetCooldown(MCH.PvpSkills.MedicalKit).RemainingCharges > 0)
+                {
+                    return MCH.PvpSkills.MedicalKit;
+                }
+
+                if (IsOffCooldown(MCH.PvpSkills.Hypercharge) && gauge.Heat >= 50)
+                {
+                    return MCH.PvpSkills.Hypercharge;
+                }
+
+                if (IsOffCooldown(MCH.PvpSkills.Wildfire))
+                {
+                    return MCH.PvpSkills.Wildfire;
+                }
+
+
+                if (IsOffCooldown(MCH.PvpSkills.Blank) && IsTargetInRangeGiven(5.0))
+                {
+                    if (TargetHasEffect(MCH.PvpDebuffs.Wildfire))
+                        return MCH.PvpSkills.Blank;
+
+                    if (GetCooldown(MCH.PvpSkills.Wildfire).CooldownRemaining >= 25)
+                        return MCH.PvpSkills.Blank;
+                }
+
+                if (GetCooldown(MCH.PvpSkills.GaussRound).RemainingCharges > 0)
+                {
+                    return MCH.PvpSkills.GaussRound;
+                }
+
+                if (GetCooldown(MCH.PvpSkills.Ricochet).RemainingCharges > 0)
+                {
+                    return MCH.PvpSkills.Ricochet;
                 }
             }
 

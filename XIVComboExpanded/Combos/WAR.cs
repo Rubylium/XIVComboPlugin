@@ -7,6 +7,7 @@ namespace XIVComboExpandedPlugin.Combos
     internal static class WAR
     {
         public const double GDC = 0.55;
+        public const uint GCD_SKILL = HeavySwing;
         public const byte ClassID = 3;
         public const byte JobID = 21;
 
@@ -36,6 +37,8 @@ namespace XIVComboExpandedPlugin.Combos
             Equilibrium = 3552,
             Bloodwhetting = 25751,
             ThrillOfBattle = 40,
+            Vengeance = 44,
+            ShakeItOff = 7388,
             PrimalRend = 25753;
 
         public static class Buffs
@@ -45,6 +48,7 @@ namespace XIVComboExpandedPlugin.Combos
                 InnerRelease = 1177,
                 NascentChaos = 1897,
                 PrimalRendReady = 2624,
+                Vengeance = 89,
                 SurgingTempest = 2677;
         }
 
@@ -79,6 +83,8 @@ namespace XIVComboExpandedPlugin.Combos
                 Bloodwhetting = 82,
                 RawIntuition = 56,
                 ThrillOfBattle = 30,
+                Vengeance = 38,
+                ShakeItOff = 68,
                 PrimalRend = 90;
         }
     }
@@ -102,7 +108,7 @@ namespace XIVComboExpandedPlugin.Combos
                 }
 
 
-                if (GetCooldown(WAR.HeavySwing).CooldownRemaining <= WAR.GDC)
+                if (IsUnderGcd(WAR.GCD_SKILL))
                 {
                     if (level >= WAR.Levels.InnerRelease && HasEffect(WAR.Buffs.InnerRelease))
                         return WAR.FellCleave;
@@ -171,22 +177,53 @@ namespace XIVComboExpandedPlugin.Combos
                     return WAR.Interject;
                 }
 
+                if (level >= ALL.Levels.Reprisal && IsOffCooldown(ALL.Reprisal) &&
+                    IsTargetInRange())
+                {
+                    if (IsEnemyCasting() && GetEnemyCastingTimeRemaining() <= 3 && GetEnemyCastingTimeRemaining() >= 1)
+                        return ALL.Reprisal;
+                }
+
+                if (level >= ALL.Levels.Rampart && IsOffCooldown(ALL.Rampart) &&
+                    IsTargetInRange() && !TargetHasEffect(ALL.Debuffs.Reprisal))
+                {
+                    if (IsEnemyCasting() && GetEnemyCastingTimeRemaining() <= 3 && GetEnemyCastingTimeRemaining() >= 1)
+                        return ALL.Rampart;
+                }
+
+                if (level >= WAR.Levels.Vengeance && IsOffCooldown(WAR.Vengeance) &&
+                    IsTargetInRange() && !TargetHasEffect(ALL.Debuffs.Reprisal) && !HasEffect(ALL.Buffs.Rampart))
+                {
+                    if (IsEnemyCasting() && GetEnemyCastingTimeRemaining() <= 3 && GetEnemyCastingTimeRemaining() >= 1)
+                        return WAR.Vengeance;
+                }
+
+                if (level >= WAR.Levels.ShakeItOff && IsOffCooldown(WAR.ShakeItOff) &&
+                    IsTargetInRange() && !TargetHasEffect(ALL.Debuffs.Reprisal) && !HasEffect(ALL.Buffs.Rampart) &&
+                    !HasEffect(WAR.Buffs.Vengeance))
+                {
+                    if (IsEnemyCasting() && GetEnemyCastingTimeRemaining() <= 3 && GetEnemyCastingTimeRemaining() >= 1)
+                        return WAR.ShakeItOff;
+                }
+
+
                 if (GetPlayerHealth() <= 70 &&
                     IsOffCooldown(WAR.RawIntuition) && level >= WAR.Levels.RawIntuition)
                 {
                     return OriginalHook(WAR.RawIntuition);
                 }
 
-                if (GetPlayerHealth() <= 60 &&
-                    IsOffCooldown(WAR.Equilibrium) && level >= WAR.Levels.Equilibrium)
-                {
-                    return WAR.Equilibrium;
-                }
 
-                if (GetPlayerHealth() <= 50 &&
+                if (GetPlayerHealth() <= 60 &&
                     IsOffCooldown(WAR.ThrillOfBattle) && level >= WAR.Levels.ThrillOfBattle)
                 {
                     return WAR.ThrillOfBattle;
+                }
+
+                if (GetPlayerHealth() <= 40 &&
+                    IsOffCooldown(WAR.Equilibrium) && level >= WAR.Levels.Equilibrium)
+                {
+                    return WAR.Equilibrium;
                 }
 
 
@@ -273,7 +310,8 @@ namespace XIVComboExpandedPlugin.Combos
             if (actionID == WAR.MythrilTempest)
             {
                 var gauge = GetJobGauge<WARGauge>();
-                if (GetCooldown(WAR.HeavySwing).CooldownRemaining <= WAR.GDC)
+                if (IsUnderGcd(WAR.GCD_SKILL))
+                    //if (GetCooldown(WAR.HeavySwing).CooldownRemaining <= WAR.GDC)
                 {
                     if (level >= WAR.Levels.Decimate && gauge.BeastGauge >= 50)
                         return WAR.Decimate;
@@ -290,6 +328,13 @@ namespace XIVComboExpandedPlugin.Combos
                 }
 
 
+                if (level >= ALL.Levels.Reprisal && IsOffCooldown(ALL.Reprisal) &&
+                    IsTargetInRange() && !HasEffect(ALL.Buffs.Vulndown))
+                {
+                    return ALL.Reprisal;
+                }
+
+
                 if (GetPlayerHealth() <= 70 &&
                     IsOffCooldown(WAR.ThrillOfBattle) && level >= WAR.Levels.ThrillOfBattle)
                 {
@@ -297,18 +342,12 @@ namespace XIVComboExpandedPlugin.Combos
                 }
 
                 if (GetPlayerHealth() <= 60 &&
-                    IsOffCooldown(WAR.Bloodwhetting) && level >= WAR.Levels.Bloodwhetting)
-                {
-                    return WAR.Bloodwhetting;
-                }
-
-                if (GetPlayerHealth() <= 60 &&
                     IsOffCooldown(WAR.RawIntuition) && level >= WAR.Levels.RawIntuition)
                 {
-                    return WAR.RawIntuition;
+                    return OriginalHook(WAR.RawIntuition);
                 }
 
-                if (GetPlayerHealth() <= 50 &&
+                if (GetPlayerHealth() <= 40 &&
                     IsOffCooldown(WAR.Equilibrium) && level >= WAR.Levels.Equilibrium)
                 {
                     return WAR.Equilibrium;
@@ -321,9 +360,31 @@ namespace XIVComboExpandedPlugin.Combos
                 if (level >= WAR.Levels.Orogeny && IsOffCooldown(WAR.Orogeny))
                     return WAR.Orogeny;
 
+
+                if (level >= WAR.Levels.Vengeance && IsOffCooldown(WAR.Vengeance) &&
+                    IsTargetInRange() && !TargetHasEffect(ALL.Debuffs.Reprisal) && !HasEffect(ALL.Buffs.Rampart))
+                {
+                    return WAR.Vengeance;
+                }
+
                 if (level < WAR.Levels.Orogeny && level >= WAR.Levels.Upheaval && IsOffCooldown(WAR.Upheaval))
                 {
                     return WAR.Upheaval;
+                }
+
+
+                if (level >= ALL.Levels.Rampart && IsOffCooldown(ALL.Rampart) &&
+                    IsTargetInRange() && !TargetHasEffect(ALL.Debuffs.Reprisal) && !HasEffect(ALL.Buffs.Vulndown))
+                {
+                    return ALL.Rampart;
+                }
+
+                if (level >= WAR.Levels.ShakeItOff && IsOffCooldown(WAR.ShakeItOff) &&
+                    IsTargetInRange() && !TargetHasEffect(ALL.Debuffs.Reprisal) && !HasEffect(ALL.Buffs.Rampart) &&
+                    !HasEffect(WAR.Buffs.Vengeance))
+                {
+                    if (GetPlayerHealth() <= 80)
+                        return WAR.ShakeItOff;
                 }
             }
 

@@ -12,12 +12,17 @@
             Feint = 7549,
             Bloodbath = 7542,
             LucidDream = 7562,
+            Interject = 7538,
+            Reprisal = 7535,
+            Rampart = 7531,
+            TrueNorth = 7546,
             SecondWind = 7541;
 
         public static class Buffs
         {
             public const ushort
-                Placeholder = 0;
+                Vulndown = 912,
+                Rampart = 1191;
         }
 
         public static class Debuffs
@@ -25,6 +30,7 @@
             public const ushort
                 Heavy = 14,
                 Bind = 13,
+                Reprisal = 1193,
                 Placeholder = 0;
         }
 
@@ -37,6 +43,10 @@
                 LegGraze = 6,
                 Bloodbath = 12,
                 LucidDream = 24,
+                Interject = 18,
+                Reprisal = 22,
+                Rampart = 8,
+                TrueNorth = 50,
                 SecondWind = 8;
         }
     }

@@ -1,10 +1,12 @@
 using Dalamud.Game.ClientState.JobGauge.Types;
+using Lumina.Data.Parsing.Layer;
 
 namespace XIVComboExpandedPlugin.Combos
 {
     internal static class DRG
     {
         public const double GDC = 0.55;
+        public const uint GCD_SKILL = TrueThrust;
         public const byte ClassID = 4;
         public const byte JobID = 22;
 
@@ -202,16 +204,16 @@ namespace XIVComboExpandedPlugin.Combos
             {
                 var gauge = GetJobGauge<DRGGauge>();
 
-                if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
-                     CurrentTarget.HitboxRadius) >= 4.0)
-                {
-                    if (level >= DRG.Levels.PiercingTalon)
-                    {
-                        return DRG.PiercingTalon;
-                    }
-                }
+                //if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
+                //     CurrentTarget.HitboxRadius) >= 4.0)
+                //{
+                //    if (level >= DRG.Levels.PiercingTalon)
+                //    {
+                //        return DRG.PiercingTalon;
+                //    }
+                //}
 
-                if (GetCooldown(DRG.TrueThrust).CooldownRemaining <= DRG.GDC)
+                if (IsUnderGcd(DRG.GCD_SKILL) && IsTargetInRange())
                 {
                     if (level >= DRG.Levels.WheelingThrust && HasEffect(DRG.Buffs.EnhancedWheelingThrust))
                         return DRG.WheelingThrust;
@@ -233,8 +235,7 @@ namespace XIVComboExpandedPlugin.Combos
                         if (comboTime > 0)
                         {
                             if (!TargetHasEffect(DRG.Debuffs.ChaoticSpring) ||
-                                FindTargetEffect(DRG.Debuffs.ChaoticSpring).RemainingTime <= 10 ||
-                                HasEffect(DRG.Buffs.LanceCharge) || HasEffect(DRG.Buffs.DragonSight))
+                                FindTargetEffect(DRG.Debuffs.ChaoticSpring).RemainingTime <= 5)
                             {
                                 if (lastComboMove == DRG.Disembowel && level >= DRG.Levels.ChaosThrust)
                                     // ChaoticSpring
@@ -269,63 +270,72 @@ namespace XIVComboExpandedPlugin.Combos
                     return ALL.SecondWind;
                 }
 
-                if ((LocalPlayer.CurrentHp * 100) / LocalPlayer.MaxHp <= 30 &&
-                    IsOffCooldown(ALL.Bloodbath) && level >= ALL.Levels.Bloodbath)
+
+                if (GetCooldown(DRG.LifeSurge).RemainingCharges > 0 && !HasEffect(DRG.Buffs.LifeSurge) &&
+                    lastComboMove == DRG.VorpalThrust && IsTargetInRange())
+                {
+                    return DRG.LifeSurge;
+                }
+
+
+                if (level < DRG.Levels.FullThrust &&
+                    GetCooldown(DRG.LifeSurge).RemainingCharges > 0 &&
+                    !HasEffect(DRG.Buffs.LifeSurge) && IsTargetInRange())
+                {
+                    return DRG.LifeSurge;
+                }
+
+
+                if ((LocalPlayer.CurrentHp * 100) / LocalPlayer.MaxHp <= 50 &&
+                    IsOffCooldown(ALL.Bloodbath) && level >= ALL.Levels.Bloodbath && IsTargetInRange())
                 {
                     return ALL.Bloodbath;
                 }
 
-                if (level >= DRG.Levels.LanceCharge && IsOffCooldown(DRG.LanceCharge))
+                if (level >= DRG.Levels.LanceCharge && IsOffCooldown(DRG.LanceCharge) && IsTargetInRange())
                 {
                     return DRG.LanceCharge;
                 }
 
-                if (level >= DRG.Levels.BattleLitany && IsOffCooldown(DRG.BattleLitany))
+                if (level >= DRG.Levels.BattleLitany && IsOffCooldown(DRG.BattleLitany) && IsTargetInRange())
                 {
                     return DRG.BattleLitany;
                 }
 
-                if (level >= DRG.Levels.DragonSight && IsOffCooldown(DRG.DragonSight))
+                if (level >= ALL.Levels.TrueNorth && GetCooldown(ALL.TrueNorth).RemainingCharges > 0 &&
+                    IsTargetInRange())
+                {
+                    if (HasEffect(DRG.Buffs.EnhancedWheelingThrust) || HasEffect(DRG.Buffs.SharperFangAndClaw))
+                        return ALL.TrueNorth;
+                }
+
+                if (level >= DRG.Levels.DragonSight && IsOffCooldown(DRG.DragonSight) &&
+                    IsOffCooldown(DRG.DragonfireDive))
                 {
                     return DRG.DragonSight;
                 }
 
-                if (level >= ALL.Levels.Feint && IsOffCooldown(ALL.Feint))
-                {
-                    return ALL.Feint;
-                }
+                //if (level >= ALL.Levels.Feint && IsOffCooldown(ALL.Feint) && IsTargetInRange())
+                //{
+                //    return ALL.Feint;
+                //}
 
-
-                if (level >= DRG.Levels.WyrmwindThrust && gauge.FirstmindsFocusCount == 2)
-                    return DRG.WyrmwindThrust;
-
-                if (level >= DRG.Levels.HighJump && IsOffCooldown(DRG.HighJump) &&
-                    GetCooldown(DRG.TrueThrust).CooldownRemaining <= DRG.GDC + 0.40)
-                {
-                    return DRG.HighJump;
-                }
-
-                if (level < DRG.Levels.HighJump && level >= DRG.Levels.Jump && IsOffCooldown(DRG.Jump) &&
-                    GetCooldown(DRG.TrueThrust).CooldownRemaining <= DRG.GDC + 0.30)
-                {
-                    return DRG.Jump;
-                }
 
                 if (level >= DRG.Levels.MirageDive && IsOffCooldown(DRG.MirageDive) && level >= DRG.Levels.HighJump &&
-                    HasEffect(DRG.Buffs.DiveReady))
+                    HasEffect(DRG.Buffs.DiveReady) && IsTargetInRangeGiven(20) && gauge.EyeCount < 2)
                 {
                     return DRG.MirageDive;
                 }
 
 
                 if (level >= DRG.Levels.Geirskogul && IsOffCooldown(DRG.Geirskogul) && level >= DRG.Levels.HighJump &&
-                    gauge.EyeCount == 2 && GetCooldown(DRG.TrueThrust).CooldownRemaining <= DRG.GDC + 0.30)
+                    gauge.EyeCount == 2 && IsTargetInRangeGiven(15))
                 {
                     return DRG.Geirskogul;
                 }
 
-                if (level >= DRG.Levels.Geirskogul && IsOffCooldown(DRG.Geirskogul) &&
-                    GetCooldown(DRG.TrueThrust).CooldownRemaining <= DRG.GDC + 0.30)
+
+                if (level >= DRG.Levels.Geirskogul && IsOffCooldown(DRG.Geirskogul) && IsTargetInRangeGiven(15))
                 {
                     if (GetCooldown(DRG.HighJump).CooldownRemaining >= 20)
                     {
@@ -338,29 +348,45 @@ namespace XIVComboExpandedPlugin.Combos
                     }
                 }
 
-                if (GetCooldown(DRG.LifeSurge).RemainingCharges > 0 && !HasEffect(DRG.Buffs.LifeSurge))
+                if (level >= DRG.Levels.HighJump && IsOffCooldown(DRG.HighJump) && GetCurrentGcd(DRG.GCD_SKILL) >= 70 &&
+                    IsTargetInRange())
                 {
-                    return DRG.LifeSurge;
+                    return DRG.HighJump;
                 }
+
+                if (level < DRG.Levels.HighJump && level >= DRG.Levels.Jump && IsOffCooldown(DRG.Jump) &&
+                    GetCurrentGcd(DRG.GCD_SKILL) >= 70 && IsTargetInRange())
+                {
+                    return DRG.Jump;
+                }
+
+                if (level >= DRG.Levels.WyrmwindThrust && gauge.FirstmindsFocusCount == 2 && IsTargetInRangeGiven(15))
+                    return DRG.WyrmwindThrust;
 
 
                 if (level >= DRG.Levels.Nastond && IsOffCooldown(DRG.Nastond) && gauge.IsLOTDActive &&
-                    GetCooldown(DRG.TrueThrust).CooldownRemaining <= DRG.GDC + 0.30)
+                    IsTargetInRangeGiven(15))
                 {
                     return DRG.Nastond;
                 }
 
                 if (level >= DRG.Levels.Stardiver && IsOffCooldown(DRG.Stardiver) && gauge.IsLOTDActive &&
-                    GetCooldown(DRG.TrueThrust).CooldownRemaining <= DRG.GDC + 0.30)
+                    GetCurrentGcd(DRG.GCD_SKILL) >= 70 && IsTargetInRange())
                 {
                     return DRG.Stardiver;
                 }
 
                 if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
-                     CurrentTarget.HitboxRadius) <= 4.5 &&
-                    GetCooldown(DRG.TrueThrust).CooldownRemaining <= DRG.GDC + 0.30)
+                     CurrentTarget.HitboxRadius) <= 4.5 && GetCurrentGcd(DRG.GCD_SKILL) >= 70)
                 {
-                    if (level >= DRG.Levels.DragonfireDive && IsOffCooldown(DRG.DragonfireDive))
+                    if (level >= DRG.Levels.DragonfireDive && IsOffCooldown(DRG.DragonfireDive) &&
+                        HasEffect(DRG.Buffs.DragonSight))
+                    {
+                        return DRG.DragonfireDive;
+                    }
+
+                    if (level < DRG.Levels.DragonSight && level >= DRG.Levels.DragonfireDive &&
+                        IsOffCooldown(DRG.DragonfireDive))
                     {
                         return DRG.DragonfireDive;
                     }

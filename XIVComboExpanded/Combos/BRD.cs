@@ -6,8 +6,11 @@ namespace XIVComboExpandedPlugin.Combos
     internal static class BRD
     {
         public const byte ClassID = 5;
+        public const uint GCD_SKILL = HeavyShot;
         public const byte JobID = 23;
         public const double GDC = 0.55;
+        public const double DOT_TIME_LEFT = 8;
+        public const int DOT_TIME_LEFT_TO_ADD = 11;
 
         public const uint
             HeavyShot = 97,
@@ -54,6 +57,9 @@ namespace XIVComboExpandedPlugin.Combos
                 RepellingShot = 8839,
                 Potion = 18943,
                 Nature = 19071,
+                HeadGaze = 17680,
+                Concentrate = 18955,
+                Recuperate = 18928,
                 EmpyrealArrow = 8838;
         }
 
@@ -143,8 +149,9 @@ namespace XIVComboExpandedPlugin.Combos
             if (actionID == BRD.HeavyShot || actionID == BRD.BurstShot)
             {
                 var gauge2 = GetJobGauge<BRDGauge>();
-
-                int codaCount = 0;
+                var gauge = GetJobGauge<BRDGauge>();
+                var codaCount = 0;
+                var sec_to_add = 0;
                 foreach (Song song in gauge2.Coda)
                 {
                     if (song == Song.NONE)
@@ -153,117 +160,136 @@ namespace XIVComboExpandedPlugin.Combos
                     }
                 }
 
-
-                if (!IsOnCooldown(BRD.StraightShot) && level >= BRD.Levels.StraightShot &&
-                    HasEffect(BRD.Buffs.StraightShotReady))
-                    // Refulgent Arrow
-                    return OriginalHook(BRD.StraightShot);
-
-
-                var gauge = GetJobGauge<BRDGauge>();
-
-
-                if (!IsOnCooldown(BRD.ApexArrow) && gauge.SoulVoice >= 80 &&
-                    gauge.Song == Song.MAGE && gauge.SongTimer >= 21000)
-                    return BRD.ApexArrow;
-
-                if (!IsOnCooldown(BRD.ApexArrow) && gauge.SoulVoice >= 80 &&
-                    HasEffect(BRD.Buffs.RagingStrike) &&
-                    HasEffect(BRD.Buffs.BattleVoice))
-                    return BRD.ApexArrow;
-
-                if (!IsOnCooldown(BRD.BlastArrow) && level >= BRD.Levels.BlastShot &&
-                    HasEffect(BRD.Buffs.BlastShotReady))
-                    return BRD.BlastArrow;
-
-
-                if (GetCooldown(BRD.HeavyShot).CooldownRemaining < BRD.GDC)
+                if (gauge.Song == Song.WANDERER)
                 {
-                    var windbite = FindTargetEffect(BRD.Debuffs.Windbite);
-                    var stormbite = FindTargetEffect(BRD.Debuffs.Stormbite);
-
-                    var causticBite = FindTargetEffect(BRD.Debuffs.CausticBite);
-                    var VenomousBite = FindTargetEffect(BRD.Debuffs.VenomousBite);
-
-                    if (IsOffCooldown(BRD.IronJaws) && level >= BRD.Levels.IronJaws &&
-                        GetCooldown(BRD.BurstShot).CooldownRemaining <= BRD.GDC)
-                    {
-                        if (TargetHasEffect(BRD.Debuffs.VenomousBite) && VenomousBite.RemainingTime <= 7)
-                        {
-                            return BRD.IronJaws;
-                        }
-
-                        if (TargetHasEffect(BRD.Debuffs.CausticBite) && causticBite.RemainingTime <= 7)
-                        {
-                            return BRD.IronJaws;
-                        }
-
-                        if (TargetHasEffect(BRD.Debuffs.Windbite) && windbite.RemainingTime <= 7)
-                        {
-                            return BRD.IronJaws;
-                        }
-
-                        if (TargetHasEffect(BRD.Debuffs.Stormbite) && stormbite.RemainingTime <= 7)
-                        {
-                            return BRD.IronJaws;
-                        }
-                    }
-
-
-                    if (level >= BRD.Levels.Stormbite && !TargetHasEffect(BRD.Debuffs.Stormbite))
-                    {
-                        return BRD.Stormbite;
-                    }
-
-
-                    if (level < BRD.Levels.Stormbite && level >= BRD.Levels.Windbite &&
-                        !TargetHasEffect(BRD.Debuffs.Windbite))
-                    {
-                        return BRD.Windbite;
-                    }
-
-
-                    if (level >= BRD.Levels.Stormbite && stormbite.RemainingTime <= 7)
-                    {
-                        return BRD.Stormbite;
-                    }
-
-
-                    if (level < BRD.Levels.Stormbite && level >= BRD.Levels.Windbite &&
-                        windbite.RemainingTime <= 7)
-                    {
-                        return BRD.Windbite;
-                    }
-
-
-                    if (level >= BRD.Levels.CausticBite && !TargetHasEffect(BRD.Debuffs.CausticBite))
-                    {
-                        return BRD.CausticBite;
-                    }
-
-
-                    if (level < BRD.Levels.CausticBite && level >= BRD.Levels.VenomousBite &&
-                        !TargetHasEffect(BRD.Debuffs.VenomousBite))
-                    {
-                        return BRD.VenomousBite;
-                    }
-
-
-                    if (level >= BRD.Levels.CausticBite && causticBite.RemainingTime <= 7)
-                    {
-                        return BRD.CausticBite;
-                    }
-
-
-                    if (level < BRD.Levels.CausticBite && level >= BRD.Levels.VenomousBite &&
-                        VenomousBite.RemainingTime <= 7)
-                    {
-                        return BRD.VenomousBite;
-                    }
+                    sec_to_add = BRD.DOT_TIME_LEFT_TO_ADD;
                 }
 
 
-                if (GetCooldown(BRD.HeavyShot).CooldownRemaining >= BRD.GDC)
+                if (IsUnderGcd(BRD.GCD_SKILL))
+                {
+                    if (level >= BRD.Levels.StraightShot &&
+                        HasEffect(BRD.Buffs.StraightShotReady))
+                        // Refulgent Arrow
+                        return OriginalHook(BRD.StraightShot);
+
+
+                    if (gauge.SoulVoice >= 80 &&
+                        gauge.Song == Song.MAGE && gauge.SongTimer >= 21000)
+                        return BRD.ApexArrow;
+
+                    if (gauge.SoulVoice >= 80 &&
+                        HasEffect(BRD.Buffs.RagingStrike) &&
+                        HasEffect(BRD.Buffs.BattleVoice))
+                        return BRD.ApexArrow;
+
+                    if (level >= BRD.Levels.BlastShot &&
+                        HasEffect(BRD.Buffs.BlastShotReady))
+                        return BRD.BlastArrow;
+
+
+                    if (!HasEffect(BRD.Buffs.StraightShotReady))
+                    {
+                        var windbite = FindTargetEffect(BRD.Debuffs.Windbite);
+                        var stormbite = FindTargetEffect(BRD.Debuffs.Stormbite);
+
+                        var causticBite = FindTargetEffect(BRD.Debuffs.CausticBite);
+                        var VenomousBite = FindTargetEffect(BRD.Debuffs.VenomousBite);
+
+                        if (level >= BRD.Levels.IronJaws)
+                        {
+                            if (TargetHasEffect(BRD.Debuffs.VenomousBite) &&
+                                VenomousBite.RemainingTime <= BRD.DOT_TIME_LEFT + sec_to_add)
+                            {
+                                return BRD.IronJaws;
+                            }
+
+                            if (TargetHasEffect(BRD.Debuffs.CausticBite) &&
+                                causticBite.RemainingTime <= BRD.DOT_TIME_LEFT + sec_to_add)
+                            {
+                                return BRD.IronJaws;
+                            }
+
+                            if (TargetHasEffect(BRD.Debuffs.Windbite) &&
+                                windbite.RemainingTime <= BRD.DOT_TIME_LEFT + sec_to_add)
+                            {
+                                return BRD.IronJaws;
+                            }
+
+                            if (TargetHasEffect(BRD.Debuffs.Stormbite) &&
+                                stormbite.RemainingTime <= BRD.DOT_TIME_LEFT + sec_to_add)
+                            {
+                                return BRD.IronJaws;
+                            }
+                        }
+
+
+                        if (level >= BRD.Levels.Stormbite && !TargetHasEffect(BRD.Debuffs.Stormbite))
+                        {
+                            return BRD.Stormbite;
+                        }
+
+
+                        if (level < BRD.Levels.Stormbite && level >= BRD.Levels.Windbite &&
+                            !TargetHasEffect(BRD.Debuffs.Windbite))
+                        {
+                            return BRD.Windbite;
+                        }
+
+
+                        if (level >= BRD.Levels.Stormbite && stormbite.RemainingTime <= BRD.DOT_TIME_LEFT + sec_to_add)
+                        {
+                            if (level >= BRD.Levels.IronJaws)
+                                return BRD.IronJaws;
+                            return BRD.Stormbite;
+                        }
+
+
+                        if (level < BRD.Levels.Stormbite && level >= BRD.Levels.Windbite &&
+                            windbite.RemainingTime <= BRD.DOT_TIME_LEFT + sec_to_add)
+                        {
+                            if (level >= BRD.Levels.IronJaws)
+                                return BRD.IronJaws;
+                            return BRD.Windbite;
+                        }
+
+
+                        if (level >= BRD.Levels.CausticBite && !TargetHasEffect(BRD.Debuffs.CausticBite))
+                        {
+                            return BRD.CausticBite;
+                        }
+
+
+                        if (level < BRD.Levels.CausticBite && level >= BRD.Levels.VenomousBite &&
+                            !TargetHasEffect(BRD.Debuffs.VenomousBite))
+                        {
+                            return BRD.VenomousBite;
+                        }
+
+
+                        if (level >= BRD.Levels.CausticBite &&
+                            causticBite.RemainingTime <= BRD.DOT_TIME_LEFT + sec_to_add)
+                        {
+                            if (level >= BRD.Levels.IronJaws)
+                                return BRD.IronJaws;
+                            return BRD.CausticBite;
+                        }
+
+
+                        if (level < BRD.Levels.CausticBite && level >= BRD.Levels.VenomousBite &&
+                            VenomousBite.RemainingTime <= BRD.DOT_TIME_LEFT + sec_to_add)
+                        {
+                            if (level >= BRD.Levels.IronJaws)
+                                return BRD.IronJaws;
+                            return BRD.VenomousBite;
+                        }
+                    }
+
+                    return OriginalHook(BRD.BurstShot);
+                }
+
+
+                if (!IsUnderGcd(BRD.GCD_SKILL))
                 {
                     if (level >= ALL.Levels.HeadGraze && CanInterruptEnemy() && !GetCooldown(ALL.HeadGraze).IsCooldown)
                     {
@@ -293,16 +319,34 @@ namespace XIVComboExpandedPlugin.Combos
                         return BRD.ArmyPeon;
                     }
 
-                    if (!IsOnCooldown(BRD.RagingStrikes) && level >= BRD.Levels.RagingStrikes)
+                    if (!IsOnCooldown(BRD.RagingStrikes) && level >= BRD.Levels.RagingStrikes &&
+                        GetCooldown(BRD.RadiantFinal).CooldownRemaining <= 6 &&
+                        GetCooldown(BRD.BattleVoice).CooldownRemaining <= 6)
                         return BRD.RagingStrikes;
 
+
+                    if (level < BRD.Levels.RadiantFinal && level >= BRD.Levels.Barrage)
+                    {
+                        if (!IsOnCooldown(BRD.RagingStrikes) && level >= BRD.Levels.RagingStrikes &&
+                            GetCooldown(BRD.BattleVoice).CooldownRemaining <= 6)
+                            return BRD.RagingStrikes;
+
+                        if (level < BRD.Levels.BattleVoice)
+                        {
+                            if (!IsOnCooldown(BRD.RagingStrikes) && level >= BRD.Levels.RagingStrikes)
+                                return BRD.RagingStrikes;
+                        }
+                    }
+
                     if (codaCount <= 2 && !IsOnCooldown(BRD.RadiantFinal) && level >= BRD.Levels.RadiantFinal &&
-                        HasEffect(BRD.Buffs.RagingStrike))
+                        HasEffect(BRD.Buffs.RagingStrike) && FindEffect(BRD.Buffs.RagingStrike).RemainingTime <= 17)
                     {
                         return BRD.RadiantFinal;
                     }
 
-                    if (!IsOnCooldown(BRD.BattleVoice) && level >= BRD.Levels.BattleVoice)
+
+                    if (!IsOnCooldown(BRD.BattleVoice) && level >= BRD.Levels.BattleVoice &&
+                        FindEffect(BRD.Buffs.RagingStrike).RemainingTime <= 17)
                     {
                         if (gauge.Song != Song.NONE)
                         {
@@ -310,11 +354,19 @@ namespace XIVComboExpandedPlugin.Combos
                         }
                     }
 
+
                     if (level >= BRD.Levels.WandererMinet && !IsOnCooldown(BRD.WandererMinet) &&
                         gauge.Song == Song.ARMY)
                     {
                         return BRD.WandererMinet;
                     }
+
+
+                    if (!IsOnCooldown(BRD.EmpyrealArrow) && level >= BRD.Levels.EmpyrealArrow)
+                    {
+                        return BRD.EmpyrealArrow;
+                    }
+
 
                     if (!IsOnCooldown(BRD.PitchPerfect) && level >= BRD.Levels.PitchPerfect &&
                         gauge.Song == Song.WANDERER && gauge.Repertoire >= 3)
@@ -334,22 +386,61 @@ namespace XIVComboExpandedPlugin.Combos
                         return BRD.PitchPerfect;
                     }
 
-                    if (!IsOnCooldown(BRD.EmpyrealArrow) && level >= BRD.Levels.EmpyrealArrow)
-                    {
-                        return BRD.EmpyrealArrow;
-                    }
-
 
                     if (!IsOnCooldown(BRD.Barrage) && level >= BRD.Levels.Barrage &&
-                        !HasEffect(BRD.Buffs.StraightShotReady))
+                        !HasEffect(BRD.Buffs.StraightShotReady) && HasEffect(BRD.Buffs.RadiantFinal) &&
+                        HasEffect(BRD.Buffs.RagingStrike) && HasEffect(BRD.Buffs.BattleVoice))
                     {
                         return BRD.Barrage;
+                    }
+
+                    if (level < BRD.Levels.RadiantFinal && level >= BRD.Levels.Barrage)
+                    {
+                        if (!IsOnCooldown(BRD.Barrage) && level >= BRD.Levels.Barrage &&
+                            !HasEffect(BRD.Buffs.StraightShotReady) && HasEffect(BRD.Buffs.RagingStrike) &&
+                            HasEffect(BRD.Buffs.BattleVoice))
+                        {
+                            return BRD.Barrage;
+                        }
+
+                        if (level < BRD.Levels.BattleVoice)
+                        {
+                            if (!IsOnCooldown(BRD.Barrage) && level >= BRD.Levels.Barrage &&
+                                !HasEffect(BRD.Buffs.StraightShotReady) && HasEffect(BRD.Buffs.RagingStrike))
+                            {
+                                return BRD.Barrage;
+                            }
+                        }
                     }
 
 
                     if (!IsOnCooldown(BRD.Sidewinder) && level >= BRD.Levels.Sidewinder)
                     {
-                        return BRD.Sidewinder;
+                        if (GetCooldown(BRD.RagingStrikes).CooldownRemaining > 15 &&
+                            !HasEffect(BRD.Buffs.RagingStrike) &&
+                            GetCooldown(BRD.RagingStrikes).CooldownRemaining < 115)
+                            return BRD.Sidewinder;
+
+                        if (HasEffect(BRD.Buffs.RadiantFinal) && HasEffect(BRD.Buffs.RagingStrike) &&
+                            HasEffect(BRD.Buffs.BattleVoice))
+                            return BRD.Sidewinder;
+
+                        if (level < BRD.Levels.RadiantFinal && level >= BRD.Levels.Sidewinder)
+                        {
+                            if (HasEffect(BRD.Buffs.RagingStrike) &&
+                                HasEffect(BRD.Buffs.BattleVoice))
+                            {
+                                return BRD.Sidewinder;
+                            }
+
+                            if (level < BRD.Levels.BattleVoice)
+                            {
+                                if (HasEffect(BRD.Buffs.RagingStrike))
+                                {
+                                    return BRD.Sidewinder;
+                                }
+                            }
+                        }
                     }
 
                     if ((LocalPlayer.CurrentHp * 100) / LocalPlayer.MaxHp <= 40 &&
@@ -393,7 +484,9 @@ namespace XIVComboExpandedPlugin.Combos
                     {
                         if (IsOffCooldown(BRD.Troubadour))
                         {
-                            return BRD.Troubadour;
+                            if (IsEnemyCasting() && GetEnemyCastingTimeRemaining() <= 5 &&
+                                GetEnemyCastingTimeRemaining() >= 1)
+                                return BRD.Troubadour;
                         }
                     }
 
@@ -406,46 +499,52 @@ namespace XIVComboExpandedPlugin.Combos
                     }
 
 
-                    if (level >= ALL.Levels.LegGraze && !GetCooldown(ALL.LegGraze).IsCooldown)
-                    {
-                        return ALL.LegGraze;
-                    }
-
-                    if (level >= ALL.Levels.FootGraze && !GetCooldown(ALL.FootGraze).IsCooldown)
-                    {
-                        return ALL.FootGraze;
-                    }
+                    //if (level >= ALL.Levels.LegGraze && !GetCooldown(ALL.LegGraze).IsCooldown)
+                    //{
+                    //    return ALL.LegGraze;
+                    //}
+//
+                    //if (level >= ALL.Levels.FootGraze && !GetCooldown(ALL.FootGraze).IsCooldown)
+                    //{
+                    //    return ALL.FootGraze;
+                    //}
                 }
 
 
-                if (level >= BRD.Levels.BurstShot)
-                {
-                    if (GetCooldown(BRD.BurstShot).CooldownRemaining <= BRD.GDC)
-                    {
-                        return BRD.BurstShot;
-                    }
-                }
-
-                if (level < BRD.Levels.BurstShot)
-                {
-                    if (GetCooldown(BRD.HeavyShot).CooldownRemaining <= BRD.GDC)
-                    {
-                        return BRD.HeavyShot;
-                    }
-                }
+                //if (level >= BRD.Levels.BurstShot)
+                //{
+                //    if (IsUnderGcd(BRD.GCD_SKILL))
+                //    {
+                //        return BRD.BurstShot;
+                //    }
+                //}
+//
+                //if (level < BRD.Levels.BurstShot)
+                //{
+                //    if (IsUnderGcd(BRD.GCD_SKILL))
+                //    {
+                //        return BRD.HeavyShot;
+                //    }
+                //}
             }
 
             if (actionID == BRD.PvpSkills.BurstShot)
             {
                 var gauge = GetJobGauge<BRDGauge>();
 
-                if ((LocalPlayer.CurrentHp * 100) / LocalPlayer.MaxHp <= 40 &&
-                    GetCooldown(BRD.PvpSkills.Potion).RemainingCharges > 0)
+                //if (GetPlayerHealth() <= 25 &&
+                //    GetCooldown(BRD.PvpSkills.Potion).RemainingCharges > 0)
+                //{
+                //    return BRD.PvpSkills.Potion;
+                //}
+
+                if (!IsOnCooldown(BRD.PvpSkills.HeadGaze) && GetTargetHealth() <= 25)
                 {
-                    return BRD.PvpSkills.Potion;
+                    return BRD.PvpSkills.HeadGaze;
                 }
 
-                if (GetCooldown(BRD.BurstShot).CooldownRemaining >= BRD.GDC)
+
+                if (!IsUnderGcd(BRD.PvpSkills.BurstShot))
                 {
                     if (gauge.SongTimer <= 1)
                     {
@@ -465,14 +564,40 @@ namespace XIVComboExpandedPlugin.Combos
                     if (GetCooldown(BRD.PvpSkills.EmpyrealArrow).RemainingCharges > 0)
                         return BRD.PvpSkills.EmpyrealArrow;
 
-                    if (!IsOnCooldown(BRD.PvpSkills.PitchPerfect) && gauge.SongTimer >= 1 && gauge.Repertoire > 1 &&
+                    if (!IsOnCooldown(BRD.PvpSkills.PitchPerfect) && gauge.SongTimer >= 0 && gauge.Repertoire == 3 &&
                         gauge.Song == Song.WANDERER)
                         return BRD.PvpSkills.PitchPerfect;
+
+                    if (!IsOnCooldown(BRD.PvpSkills.PitchPerfect) && gauge.SongTimer >= 0 &&
+                        gauge.Song == Song.WANDERER)
+                    {
+                        if (gauge.Repertoire == 3)
+                        {
+                            return BRD.PvpSkills.PitchPerfect;
+                        }
+
+
+                        if (gauge.SongTimer < 6000)
+                        {
+                            return BRD.PvpSkills.PitchPerfect;
+                        }
+                    }
+
 
                     if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
                          CurrentTarget.HitboxRadius) <= 6.0 && IsOffCooldown(BRD.PvpSkills.RepellingShot))
                     {
                         return BRD.PvpSkills.RepellingShot;
+                    }
+
+                    if (gauge.SoulVoice >= 50 && !IsOnCooldown(BRD.PvpSkills.ApexArrow) &&
+                        !GetCooldown(BRD.PvpSkills.Concentrate).IsCooldown)
+                        return BRD.PvpSkills.Concentrate;
+
+
+                    if (!IsOnCooldown(BRD.PvpSkills.Recuperate) && GetPlayerHealth() <= 10)
+                    {
+                        return BRD.PvpSkills.Recuperate;
                     }
                 }
 

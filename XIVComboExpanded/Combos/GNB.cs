@@ -38,6 +38,7 @@ namespace XIVComboExpandedPlugin.Combos
                 ReadyToGouge = 1844,
                 ReadyToBlast = 2686;
         }
+        
 
         public static class Debuffs
         {

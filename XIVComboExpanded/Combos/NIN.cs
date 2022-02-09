@@ -6,6 +6,7 @@ namespace XIVComboExpandedPlugin.Combos
     internal static class NIN
     {
         public const double GDC = 0.55;
+        public const uint GCD_SKILL = SpinningEdge;
         public const byte ClassID = 29;
         public const byte JobID = 30;
 
@@ -108,11 +109,19 @@ namespace XIVComboExpandedPlugin.Combos
                     }
                 }
 
-                if (GetCooldown(NIN.SpinningEdge).CooldownRemaining <= NIN.GDC)
+                if (IsUnderGcd(NIN.GCD_SKILL))
                 {
                     if (level >= NIN.Levels.Huraijin && IsOffCooldown(NIN.Huraijin) && gauge.HutonTimer <= 1000)
                     {
                         return NIN.Huraijin;
+                    }
+                    
+                    if (level >= NIN.Levels.Raiju && HasEffect(NIN.Buffs.RaijuReady) && !HasEffect(NIN.Buffs.Mudra))
+                    {
+                        return NIN.ForkedRaiju;
+
+                        //if (IsEnabled(CustomComboPreset.NinjaNinjitsuFleetingRaijuFeature))
+                        //    return NIN.FleetingRaiju;
                     }
 
 
@@ -139,71 +148,87 @@ namespace XIVComboExpandedPlugin.Combos
                 }
 
 
-                if (!HasEffect(NIN.Buffs.Kassatsu))
+                if (!HasEffect(NIN.Buffs.Hidden))
                 {
-                    if (level >= NIN.Levels.TenChiJin && IsOffCooldown(NIN.TenChiJin))
+                    if (!HasEffect(NIN.Buffs.Kassatsu))
                     {
-                        return NIN.TenChiJin;
+                        if (level >= NIN.Levels.TenChiJin && IsOffCooldown(NIN.TenChiJin))
+                        {
+                            return NIN.TenChiJin;
+                        }
+                    }
+
+                    if (!HasEffect(NIN.Buffs.TenChiJin))
+                    {
+                        if (IsOffCooldown(NIN.FumaShuriken))
+                        {
+                            return NIN.FumaShuriken;
+                        }
+
+                        if (IsOffCooldown(NIN.Raiton))
+                        {
+                            return NIN.Raiton;
+                        }
+
+                        if (IsOffCooldown(NIN.Suiton))
+                        {
+                            return NIN.Suiton;
+                        }
+
+                        if (IsOffCooldown(NIN.Doton))
+                        {
+                            return NIN.Doton;
+                        }
+
+                        if (IsOffCooldown(NIN.katon))
+                        {
+                            return NIN.katon;
+                        }
+                    }
+
+                    if (level >= NIN.Levels.Kassatsu && IsOffCooldown(NIN.Kassatsu))
+                    {
+                        return NIN.Kassatsu;
+                    }
+
+
+                    if (level >= NIN.Levels.Bunshin && IsOffCooldown(NIN.Bunshin) && gauge.Ninki >= 50)
+                    {
+                        return NIN.Bunshin;
+                    }
+
+                    if (level >= NIN.Levels.Meisui && IsOffCooldown(NIN.Meisui) && gauge.Ninki < 50 && HasEffect(NIN.Buffs.Suiton))
+                    {
+                        return NIN.Meisui;
+                    }
+
+                    if (level >= NIN.Levels.Bhavacakra && IsOffCooldown(NIN.Bhavacakra) && gauge.Ninki >= 50)
+                    {
+                        return NIN.Bhavacakra;
+                    }
+
+                    if (level >= NIN.Levels.Mug && IsOffCooldown(NIN.Mug) && gauge.Ninki < 40)
+                    {
+                        return NIN.Mug;
+                    }
+
+                    if (level >= NIN.Levels.Hide && IsOffCooldown(NIN.Hide) && IsOffCooldown(NIN.TrickAttack))
+                    {
+                        return NIN.Hide;
+                    }
+
+
+                    if (level >= NIN.Levels.DreamWithinADream && IsOffCooldown(NIN.DreamWithinADream))
+                    {
+                        return NIN.DreamWithinADream;
                     }
                 }
 
-                if (!HasEffect(NIN.Buffs.TenChiJin))
-                {
-                    if (IsOffCooldown(NIN.FumaShuriken))
-                    {
-                        return NIN.FumaShuriken;
-                    }
 
-                    if (IsOffCooldown(NIN.Raiton))
-                    {
-                        return NIN.Raiton;
-                    }
-
-                    if (IsOffCooldown(NIN.Suiton))
-                    {
-                        return NIN.Suiton;
-                    }
-
-                    if (IsOffCooldown(NIN.Doton))
-                    {
-                        return NIN.Doton;
-                    }
-
-                    if (IsOffCooldown(NIN.katon))
-                    {
-                        return NIN.katon;
-                    }
-                }
-
-                if (level >= NIN.Levels.Kassatsu && IsOffCooldown(NIN.Kassatsu))
-                {
-                    return NIN.Kassatsu;
-                }
-
-
-                if (level >= NIN.Levels.Bunshin && IsOffCooldown(NIN.Bunshin) && gauge.Ninki >= 50)
-                {
-                    return NIN.Bunshin;
-                }
-
-                if (level >= NIN.Levels.Bhavacakra && IsOffCooldown(NIN.Bhavacakra) && gauge.Ninki >= 50)
-                {
-                    return NIN.Bhavacakra;
-                }
-
-                if (level >= NIN.Levels.Mug && IsOffCooldown(NIN.Mug))
-                {
-                    return NIN.Mug;
-                }
-
-                if (level >= NIN.Levels.TrickAttack && IsOffCooldown(NIN.TrickAttack) && HasEffect(NIN.Buffs.Hidden) || HasEffect(NIN.Buffs.Suiton))
+                if (level >= NIN.Levels.TrickAttack && IsOffCooldown(NIN.TrickAttack) && HasEffect(NIN.Buffs.Hidden) ||
+                    HasEffect(NIN.Buffs.Suiton))
                 {
                     return NIN.TrickAttack;
-                }
-
-                if (level >= NIN.Levels.DreamWithinADream && IsOffCooldown(NIN.DreamWithinADream))
-                {
-                    return NIN.DreamWithinADream;
                 }
             }
 

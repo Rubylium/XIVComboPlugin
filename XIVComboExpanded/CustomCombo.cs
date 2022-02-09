@@ -418,6 +418,28 @@ namespace XIVComboExpandedPlugin.Combos
             return false;
         }
 
+        protected static bool IsEnemyCasting()
+        {
+            if (CurrentTarget is null)
+                return false;
+            if (CurrentTarget is not BattleChara chara)
+                return false;
+            if (chara.IsCasting)
+                return true;
+            return false;
+        }
+
+        protected static float GetEnemyCastingTimeRemaining()
+        {
+            if (CurrentTarget is null)
+                return 0;
+            if (CurrentTarget is not BattleChara chara)
+                return 0;
+            if (chara.IsCasting)
+                return (chara.TotalCastTime - chara.CurrentCastTime);
+            return 0;
+        }
+
         /// <summary>
         /// Get % of the player health.
         /// </summary>
@@ -435,6 +457,11 @@ namespace XIVComboExpandedPlugin.Combos
             return (LocalPlayer.CurrentMp * 100) / LocalPlayer.MaxMp;
         }
 
+        protected static double GetPlayerManaExact()
+        {
+            return LocalPlayer.CurrentMp * 100;
+        }
+
         /// <summary>
         /// Get % of the target health.
         /// </summary>
@@ -447,6 +474,39 @@ namespace XIVComboExpandedPlugin.Combos
 
 
             return (chara.CurrentHp * 100) / chara.MaxHp;
+        }
+
+
+        protected static bool IsUnderGcd(uint gcdSkill)
+        {
+            if (GetCooldown(gcdSkill).IsCooldown)
+            {
+                return ((GetCooldown(gcdSkill).CooldownRemaining * 100) / GetCooldown(gcdSkill).CooldownTotal) <= 30;
+            }
+
+            return true;
+        }
+        
+        protected static float GetCurrentGcd(uint gcdSkill)
+        {
+            if (GetCooldown(gcdSkill).IsCooldown)
+            {
+                return (GetCooldown(gcdSkill).CooldownRemaining * 100) / GetCooldown(gcdSkill).CooldownTotal;
+            }
+
+            return 0;
+        }
+
+        protected static bool IsTargetInRange()
+        {
+            return (System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
+                    CurrentTarget.HitboxRadius) <= 4.0;
+        }
+
+        protected static bool IsTargetInRangeGiven(double range)
+        {
+            return (System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
+                    CurrentTarget.HitboxRadius) <= range;
         }
     }
 }

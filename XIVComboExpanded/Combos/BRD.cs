@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Dalamud.Game.ClientState.JobGauge.Enums;
 using Dalamud.Game.ClientState.JobGauge.Types;
+using Dalamud.Logging;
 
 namespace XIVComboExpandedPlugin.Combos
 {
@@ -326,10 +327,20 @@ namespace XIVComboExpandedPlugin.Combos
 
 
                         if (!IsOnCooldown(BRD.Mageballad) && level >= BRD.Levels.Mageballad &&
-                            gauge.Song == Song.NONE &&
-                            gauge.SongTimer <= 12000)
+                            gauge.Song == Song.WANDERER &&
+                            gauge.SongTimer <= 2000)
                         {
                             return BRD.Mageballad;
+                        }
+
+                        if (level < BRD.Levels.WandererMinet)
+                        {
+                            if (!IsOnCooldown(BRD.Mageballad) && level >= BRD.Levels.Mageballad &&
+                                gauge.Song == Song.NONE &&
+                                gauge.SongTimer <= 2000)
+                            {
+                                return BRD.Mageballad;
+                            }
                         }
 
                         if (level >= BRD.Levels.ArmyPeon && !IsOnCooldown(BRD.ArmyPeon) && gauge.Song == Song.MAGE &&
@@ -394,6 +405,11 @@ namespace XIVComboExpandedPlugin.Combos
                     }
 
 
+                    if (!IsOnCooldown(BRD.EmpyrealArrow) && level >= BRD.Levels.EmpyrealArrow)
+                    {
+                        return BRD.EmpyrealArrow;
+                    }
+
                     if (!IsOnCooldown(BRD.PitchPerfect) && level >= BRD.Levels.PitchPerfect &&
                         gauge.Song == Song.WANDERER && gauge.Repertoire >= 3)
                     {
@@ -419,10 +435,28 @@ namespace XIVComboExpandedPlugin.Combos
                         return BRD.PitchPerfect;
                     }
 
-                    if (!IsOnCooldown(BRD.EmpyrealArrow) && level >= BRD.Levels.EmpyrealArrow)
+                    if (level >= BRD.Levels.Bloodletter &&
+                        GetCooldown(BRD.Bloodletter).RemainingCharges == 3)
                     {
-                        return BRD.EmpyrealArrow;
+                        if (HasEffect(BRD.Buffs.RadiantFinal) || HasEffect(BRD.Buffs.RagingStrike))
+                        {
+                            return BRD.Bloodletter;
+                        }
+
+                        if (gauge.Song == Song.WANDERER)
+                        {
+                            if (HasEffect(BRD.Buffs.RagingStrike))
+                            {
+                                return BRD.Bloodletter;
+                            }
+
+                            if (GetCooldown(BRD.RagingStrikes).CooldownRemaining > 90)
+                            {
+                                return BRD.Bloodletter;
+                            }
+                        }
                     }
+
 
                     if (!IsOnCooldown(BRD.Barrage) && level >= BRD.Levels.Barrage &&
                         !HasEffect(BRD.Buffs.StraightShotReady) && HasEffect(BRD.Buffs.RadiantFinal) &&
@@ -515,7 +549,15 @@ namespace XIVComboExpandedPlugin.Combos
 
                         if (gauge.Song == Song.WANDERER)
                         {
-                            return BRD.Bloodletter;
+                            if (HasEffect(BRD.Buffs.RagingStrike))
+                            {
+                                return BRD.Bloodletter;
+                            }
+
+                            if (GetCooldown(BRD.RagingStrikes).CooldownRemaining > 90)
+                            {
+                                return BRD.Bloodletter;
+                            }
                         }
 
                         if (gauge.Song == Song.NONE)
@@ -531,6 +573,7 @@ namespace XIVComboExpandedPlugin.Combos
                         {
                             if (IsEnemyCasting() && GetEnemyCastingTimeRemaining() <= 5 &&
                                 GetEnemyCastingTimeRemaining() >= 1)
+                                //PluginLog.Debug("Casting type: " + GetCastingType() + " - " + GetCastingName());
                                 return BRD.Troubadour;
                         }
                     }
@@ -572,7 +615,8 @@ namespace XIVComboExpandedPlugin.Combos
                             return BRD.PvpSkills.ArmyPeon;
                     }
 
-                    if (!IsOnCooldown(BRD.PvpSkills.Nature) && (LocalPlayer.CurrentHp * 100) / LocalPlayer.MaxHp < 80)
+                    if (!IsOnCooldown(BRD.PvpSkills.Nature) &&
+                        (LocalPlayer.CurrentHp * 100) / LocalPlayer.MaxHp < 80)
                         return BRD.PvpSkills.Nature;
 
                     if (!IsOnCooldown(BRD.PvpSkills.Shadowbite))
@@ -582,7 +626,8 @@ namespace XIVComboExpandedPlugin.Combos
                     if (GetCooldown(BRD.PvpSkills.EmpyrealArrow).RemainingCharges > 0)
                         return BRD.PvpSkills.EmpyrealArrow;
 
-                    if (!IsOnCooldown(BRD.PvpSkills.PitchPerfect) && gauge.SongTimer >= 0 && gauge.Repertoire == 3 &&
+                    if (!IsOnCooldown(BRD.PvpSkills.PitchPerfect) && gauge.SongTimer >= 0 &&
+                        gauge.Repertoire == 3 &&
                         gauge.Song == Song.WANDERER)
                         return BRD.PvpSkills.PitchPerfect;
 
@@ -750,7 +795,8 @@ namespace XIVComboExpandedPlugin.Combos
 
                 if (!IsUnderGcd(BRD.GCD_SKILL))
                 {
-                    if (level >= ALL.Levels.HeadGraze && CanInterruptEnemy() && !GetCooldown(ALL.HeadGraze).IsCooldown)
+                    if (level >= ALL.Levels.HeadGraze && CanInterruptEnemy() &&
+                        !GetCooldown(ALL.HeadGraze).IsCooldown)
                     {
                         return ALL.HeadGraze;
                     }
@@ -771,7 +817,8 @@ namespace XIVComboExpandedPlugin.Combos
                             return BRD.Mageballad;
                         }
 
-                        if (level >= BRD.Levels.ArmyPeon && !IsOnCooldown(BRD.ArmyPeon) && gauge.Song == Song.MAGE &&
+                        if (level >= BRD.Levels.ArmyPeon && !IsOnCooldown(BRD.ArmyPeon) &&
+                            gauge.Song == Song.MAGE &&
                             gauge.SongTimer <= 11000)
                         {
                             return BRD.ArmyPeon;
@@ -806,7 +853,8 @@ namespace XIVComboExpandedPlugin.Combos
                         }
 
                         if (codaCount <= 2 && !IsOnCooldown(BRD.RadiantFinal) && level >= BRD.Levels.RadiantFinal &&
-                            HasEffect(BRD.Buffs.RagingStrike) && FindEffect(BRD.Buffs.RagingStrike).RemainingTime <= 17)
+                            HasEffect(BRD.Buffs.RagingStrike) &&
+                            FindEffect(BRD.Buffs.RagingStrike).RemainingTime <= 17)
                         {
                             return BRD.RadiantFinal;
                         }

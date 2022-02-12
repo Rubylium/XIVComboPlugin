@@ -4,9 +4,12 @@ using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.JobGauge.Types;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Client.Game;
+using Lumina.Text;
 using XIVComboExpandedPlugin.Attributes;
+using SeString = Dalamud.Game.Text.SeStringHandling.SeString;
+using Status = Dalamud.Game.ClientState.Statuses.Status;
 
 namespace XIVComboExpandedPlugin.Combos
 {
@@ -427,6 +430,15 @@ namespace XIVComboExpandedPlugin.Combos
             if (chara.IsCasting)
                 return true;
             return false;
+        }
+
+        protected static byte GetCastingType()
+        {
+            if (CurrentTarget is null)
+                return 0;
+            if (CurrentTarget is not BattleChara chara)
+                return 0;
+            return chara.CastActionType;
         }
 
         protected static float GetEnemyCastingTimeRemaining()

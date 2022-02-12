@@ -486,7 +486,7 @@ namespace XIVComboExpandedPlugin.Combos
 
             return true;
         }
-        
+
         protected static float GetCurrentGcd(uint gcdSkill)
         {
             if (GetCooldown(gcdSkill).IsCooldown)
@@ -507,6 +507,15 @@ namespace XIVComboExpandedPlugin.Combos
         {
             return (System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
                     CurrentTarget.HitboxRadius) <= range;
+        }
+
+        protected static string GetTargetName()
+        {
+            if (CurrentTarget is null)
+                return "None";
+            if (CurrentTarget is not BattleChara chara)
+                return "None";
+            return CurrentTarget.Name.TextValue;
         }
     }
 }

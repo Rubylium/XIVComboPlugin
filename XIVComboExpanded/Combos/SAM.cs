@@ -1,12 +1,16 @@
 using System.Net.Sockets;
+using System.Threading;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.JobGauge.Enums;
 using Dalamud.Game.ClientState.JobGauge.Types;
+using Dalamud.Logging;
 
 namespace XIVComboExpandedPlugin.Combos
 {
     internal static class SAM
     {
         public const double GDC = 0.55;
+        public const uint GCD_SKILL = Yukikaze;
         public const byte JobID = 34;
 
         public const uint
@@ -94,6 +98,7 @@ namespace XIVComboExpandedPlugin.Combos
 
     internal class SamuraiYukikaze : CustomCombo
     {
+        private bool CanUseThing = false;
         protected internal override CustomComboPreset Preset { get; } = CustomComboPreset.SamuraiYukikazeCombo;
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
@@ -118,17 +123,34 @@ namespace XIVComboExpandedPlugin.Combos
                     sens = sens + 1;
                 }
 
-                if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
-                     CurrentTarget.HitboxRadius) >= 4.0)
+                if (!HasCondition(ConditionFlag.InCombat) || CurrentTarget == null)
+                    CanUseThing = false;
+                else if (lastComboMove == SAM.Yukikaze)
+                    CanUseThing = true;
+
+                if (CurrentTarget != null && LocalPlayer != null)
                 {
-                    if (level >= SAM.Levels.Enpi)
+                    if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
+                         CurrentTarget.HitboxRadius) >= 4.0)
                     {
-                        return SAM.Enpi;
+                        if (level >= SAM.Levels.Enpi)
+                        {
+                            return SAM.Enpi;
+                        }
                     }
                 }
 
-                if (GetCooldown(SAM.Yukikaze).CooldownRemaining <= WAR.GDC)
+                if (IsUnderGcd(SAM.GCD_SKILL))
                 {
+                    //if (lastComboMove != null && comboTime != null) // Debug lul
+                    //    PluginLog.Log("lastComboMove = " + lastComboMove + " time = " + comboTime);
+                    if (level >= SAM.Levels.TsubameGaeshi && gauge.Sen == Sen.NONE &&
+                        IsOffCooldown(SAM.TsubameGaeshi) && HasCondition(ConditionFlag.InCombat))
+                    {
+                        if (CanUseThing)
+                            return OriginalHook(SAM.TsubameGaeshi);
+                    }
+
                     if (!gauge.HasSetsu)
                     {
                         if (level >= SAM.Levels.MeikyoShisui && HasEffect(SAM.Buffs.MeikyoShisui))
@@ -205,6 +227,7 @@ namespace XIVComboExpandedPlugin.Combos
                     return SAM.TrueNorth;
                 }
 
+
                 if (level >= SAM.Levels.MeikyoShisui && IsOffCooldown(SAM.MeikyoShisui))
                 {
                     return SAM.MeikyoShisui;
@@ -214,6 +237,9 @@ namespace XIVComboExpandedPlugin.Combos
                 {
                     return SAM.Ikishoten;
                 }
+
+                if (level >= SAM.Levels.HissatsuSenei && IsOffCooldown(SAM.HissatsuSenei) && gauge.Kenki >= 25)
+                    return SAM.HissatsuSenei;
 
                 if (level >= SAM.Levels.HissatsuKaiten && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu &&
                     gauge.Kenki >= 20)
@@ -239,8 +265,15 @@ namespace XIVComboExpandedPlugin.Combos
             if (actionID == SAM.Fuga)
             {
                 var gauge = GetJobGauge<SAMGauge>();
-                if (GetCooldown(SAM.Yukikaze).CooldownRemaining <= WAR.GDC)
+                if (IsUnderGcd(SAM.GCD_SKILL))
                 {
+                    if (level >= SAM.Levels.TsubameGaeshi && gauge.Sen == Sen.NONE &&
+                        IsOffCooldown(SAM.TsubameGaeshi) && HasCondition(ConditionFlag.InCombat))
+                    {
+                        if (CanUseThing)
+                            return OriginalHook(SAM.TsubameGaeshi);
+                    }
+
                     if (!gauge.HasGetsu)
                     {
                         if (comboTime > 0)
@@ -269,6 +302,14 @@ namespace XIVComboExpandedPlugin.Combos
                     }
                 }
 
+                if (level >= SAM.Levels.Shoha && gauge.MeditationStacks >= 3 && IsOffCooldown(SAM.Shoha))
+                    return SAM.Shoha;
+
+                if (level >= SAM.Levels.MeikyoShisui && IsOffCooldown(SAM.MeikyoShisui))
+                {
+                    return SAM.MeikyoShisui;
+                }
+
                 if (level >= SAM.Levels.Ikishoten && IsOffCooldown(SAM.Ikishoten))
                 {
                     return SAM.Ikishoten;
@@ -294,9 +335,9 @@ namespace XIVComboExpandedPlugin.Combos
 
                 if (sens < 2)
                 {
-                    if (level >= SAM.Levels.HissatsuGuren && IsOffCooldown(SAM.HissatsuGuren) && gauge.Kenki >= 25)
+                    if (level >= SAM.Levels.HissatsuKyuten && IsOffCooldown(SAM.HissatsuKyuten) && gauge.Kenki >= 25)
                     {
-                        return SAM.HissatsuGuren;
+                        return SAM.HissatsuKyuten;
                     }
 
                     if (level >= SAM.Levels.HissatsuShinten && IsOffCooldown(SAM.HissatsuShinten) && gauge.Kenki >= 25)

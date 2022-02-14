@@ -16,12 +16,15 @@
             Reprisal = 7535,
             Rampart = 7531,
             TrueNorth = 7546,
+            Swiftcast = 7561,
+            Addle = 7560,
             SecondWind = 7541;
 
         public static class Buffs
         {
             public const ushort
                 Vulndown = 912,
+                Swiftcast = 167,
                 Rampart = 1191;
         }
 
@@ -37,6 +40,7 @@
         public static class Levels
         {
             public const byte
+                Addle = 8,
                 Feint = 22,
                 HeadGraze = 24,
                 FootGraze = 10,

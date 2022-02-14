@@ -218,25 +218,25 @@ namespace XIVComboExpandedPlugin.Combos
 
                         if (level >= BRD.Levels.IronJaws)
                         {
-                            if (TargetHasEffect(BRD.Debuffs.VenomousBite) &&
+                            if (TargetHasEffect(BRD.Debuffs.VenomousBite) && VenomousBite != null &&
                                 VenomousBite.RemainingTime <= BRD.DOT_TIME_LEFT + sec_to_add)
                             {
                                 return BRD.IronJaws;
                             }
 
-                            if (TargetHasEffect(BRD.Debuffs.CausticBite) &&
+                            if (TargetHasEffect(BRD.Debuffs.CausticBite) && causticBite != null &&
                                 causticBite.RemainingTime <= BRD.DOT_TIME_LEFT + sec_to_add)
                             {
                                 return BRD.IronJaws;
                             }
 
-                            if (TargetHasEffect(BRD.Debuffs.Windbite) &&
+                            if (TargetHasEffect(BRD.Debuffs.Windbite) && windbite != null &&
                                 windbite.RemainingTime <= BRD.DOT_TIME_LEFT + sec_to_add)
                             {
                                 return BRD.IronJaws;
                             }
 
-                            if (TargetHasEffect(BRD.Debuffs.Stormbite) &&
+                            if (TargetHasEffect(BRD.Debuffs.Stormbite) && stormbite != null &&
                                 stormbite.RemainingTime <= BRD.DOT_TIME_LEFT + sec_to_add)
                             {
                                 return BRD.IronJaws;
@@ -257,7 +257,8 @@ namespace XIVComboExpandedPlugin.Combos
                         }
 
 
-                        if (level >= BRD.Levels.Stormbite && stormbite.RemainingTime <= BRD.DOT_TIME_LEFT + sec_to_add)
+                        if (level >= BRD.Levels.Stormbite && stormbite != null &&
+                            stormbite.RemainingTime <= BRD.DOT_TIME_LEFT + sec_to_add)
                         {
                             if (level >= BRD.Levels.IronJaws)
                                 return BRD.IronJaws;
@@ -265,7 +266,7 @@ namespace XIVComboExpandedPlugin.Combos
                         }
 
 
-                        if (level < BRD.Levels.Stormbite && level >= BRD.Levels.Windbite &&
+                        if (level < BRD.Levels.Stormbite && level >= BRD.Levels.Windbite && windbite != null &&
                             windbite.RemainingTime <= BRD.DOT_TIME_LEFT + sec_to_add)
                         {
                             if (level >= BRD.Levels.IronJaws)
@@ -287,7 +288,7 @@ namespace XIVComboExpandedPlugin.Combos
                         }
 
 
-                        if (level >= BRD.Levels.CausticBite &&
+                        if (level >= BRD.Levels.CausticBite && causticBite != null &&
                             causticBite.RemainingTime <= BRD.DOT_TIME_LEFT + sec_to_add)
                         {
                             if (level >= BRD.Levels.IronJaws)
@@ -297,6 +298,7 @@ namespace XIVComboExpandedPlugin.Combos
 
 
                         if (level < BRD.Levels.CausticBite && level >= BRD.Levels.VenomousBite &&
+                            VenomousBite != null &&
                             VenomousBite.RemainingTime <= BRD.DOT_TIME_LEFT + sec_to_add)
                         {
                             if (level >= BRD.Levels.IronJaws)
@@ -378,13 +380,15 @@ namespace XIVComboExpandedPlugin.Combos
                         }
 
                         if (codaCount <= 2 && !IsOnCooldown(BRD.RadiantFinal) && level >= BRD.Levels.RadiantFinal &&
-                            HasEffect(BRD.Buffs.RagingStrike) && FindEffect(BRD.Buffs.RagingStrike).RemainingTime <= 17)
+                            HasEffect(BRD.Buffs.RagingStrike) && FindEffect(BRD.Buffs.RagingStrike) != null &&
+                            FindEffect(BRD.Buffs.RagingStrike).RemainingTime <= 17)
                         {
                             return BRD.RadiantFinal;
                         }
 
 
                         if (!IsOnCooldown(BRD.BattleVoice) && level >= BRD.Levels.BattleVoice &&
+                            FindEffect(BRD.Buffs.RagingStrike) != null &&
                             FindEffect(BRD.Buffs.RagingStrike).RemainingTime <= 17)
                         {
                             if (gauge.Song != Song.NONE)
@@ -418,6 +422,7 @@ namespace XIVComboExpandedPlugin.Combos
 
                     if (!IsOnCooldown(BRD.PitchPerfect) && level >= BRD.Levels.PitchPerfect &&
                         gauge.Song == Song.WANDERER && gauge.Repertoire >= 2 && HasEffect(BRD.Buffs.BattleVoice) &&
+                        FindEffect(BRD.Buffs.BattleVoice) != null &&
                         FindEffect(BRD.Buffs.BattleVoice).RemainingTime <= 6)
                     {
                         return BRD.PitchPerfect;
@@ -518,10 +523,13 @@ namespace XIVComboExpandedPlugin.Combos
                     }
 
 
-                    if ((LocalPlayer.CurrentHp * 100) / LocalPlayer.MaxHp <= 40 &&
-                        IsOffCooldown(ALL.SecondWind) && level >= ALL.Levels.SecondWind)
+                    if (LocalPlayer != null)
                     {
-                        return ALL.SecondWind;
+                        if ((LocalPlayer.CurrentHp * 100) / LocalPlayer.MaxHp <= 40 &&
+                            IsOffCooldown(ALL.SecondWind) && level >= ALL.Levels.SecondWind)
+                        {
+                            return ALL.SecondWind;
+                        }
                     }
 
 
@@ -852,8 +860,9 @@ namespace XIVComboExpandedPlugin.Combos
                             }
                         }
 
+
                         if (codaCount <= 2 && !IsOnCooldown(BRD.RadiantFinal) && level >= BRD.Levels.RadiantFinal &&
-                            HasEffect(BRD.Buffs.RagingStrike) &&
+                            HasEffect(BRD.Buffs.RagingStrike) && FindEffect(BRD.Buffs.RagingStrike) != null &&
                             FindEffect(BRD.Buffs.RagingStrike).RemainingTime <= 17)
                         {
                             return BRD.RadiantFinal;
@@ -861,6 +870,7 @@ namespace XIVComboExpandedPlugin.Combos
 
 
                         if (!IsOnCooldown(BRD.BattleVoice) && level >= BRD.Levels.BattleVoice &&
+                            FindEffect(BRD.Buffs.RagingStrike) != null &&
                             FindEffect(BRD.Buffs.RagingStrike).RemainingTime <= 17)
                         {
                             if (gauge.Song != Song.NONE)

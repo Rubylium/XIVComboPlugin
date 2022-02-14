@@ -8,7 +8,7 @@ namespace XIVComboExpandedPlugin.Combos
     internal static class SMN
     {
         public const byte ClassID = 26;
-        public const uint GCD_SKILL = Ruin;
+        public const uint GCD_SKILL = SummonCarbuncle;
         public const byte JobID = 27;
 
         public const uint
@@ -88,6 +88,9 @@ namespace XIVComboExpandedPlugin.Combos
                 MountainBuster = 86,
                 SummonIfrit = 6,
                 AstralFlow = 60,
+                Slipstream = 86,
+                CrimsonCyclone = 86,
+                CrimsonStrike = 86,
                 SummonPhoenix = 80;
         }
     }
@@ -136,6 +139,7 @@ namespace XIVComboExpandedPlugin.Combos
         private string currentSummon = "";
         private int summonGcdUsedCount = 0;
         private Boolean rekydleUsed = false;
+        private Boolean CanUseSearingLight = false;
         protected internal override CustomComboPreset Preset { get; } = CustomComboPreset.SmnAny;
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
@@ -165,24 +169,31 @@ namespace XIVComboExpandedPlugin.Combos
                     this.currentSummon = "garuda";
                 }
 
-
                 if (level >= SMN.Levels.SearingLight && IsOffCooldown(SMN.SearingLight) && HasPetPresent() &&
                     !gauge.IsIfritAttuned &&
                     !gauge.IsTitanAttuned &&
                     !gauge.IsGarudaAttuned && gauge.SummonTimerRemaining <= 0 && HasCondition(ConditionFlag.InCombat))
                 {
-                    return OriginalHook(SMN.SearingLight);
+                    CanUseSearingLight = true;
                 }
-
-                if (level >= SMN.Levels.RadiantAegis && IsOffCooldown(SMN.RadiantAegis) && HasPetPresent() &&
-                    !gauge.IsIfritAttuned &&
-                    !gauge.IsTitanAttuned &&
-                    !gauge.IsGarudaAttuned && gauge.SummonTimerRemaining <= 0 && HasCondition(ConditionFlag.InCombat))
+                else
                 {
-                    return OriginalHook(SMN.RadiantAegis);
+                    CanUseSearingLight = false;
                 }
 
-                if (IsUnderGcd(SMN.GCD_SKILL))
+
+                if (level >= SMN.Levels.Slipstream && HasEffect(SMN.Buffs.GarudasFavor) && IsOffCooldown(ALL.Swiftcast))
+                {
+                    return ALL.Swiftcast;
+                }
+
+                if (IsOffCooldown(ALL.Swiftcast) &&
+                    gauge.IsIfritAttuned)
+                {
+                    return ALL.Swiftcast;
+                }
+
+                if (IsUnderGcd(SMN.GCD_SKILL) && !CanUseSearingLight)
                 {
                     if (!gauge.IsIfritAttuned &&
                         !gauge.IsTitanAttuned &&
@@ -193,7 +204,8 @@ namespace XIVComboExpandedPlugin.Combos
 
                         if (level >= SMN.Levels.SummonBahamut && gauge.IsBahamutReady &&
                             IsOffCooldown(SMN.SummonBahamut) &&
-                            !gauge.IsTitanAttuned && !gauge.IsGarudaAttuned && !gauge.IsIfritAttuned && HasCondition(ConditionFlag.InCombat))
+                            !gauge.IsTitanAttuned && !gauge.IsGarudaAttuned && !gauge.IsIfritAttuned &&
+                            HasCondition(ConditionFlag.InCombat))
                         {
                             this.currentSummon = "bahamut";
                             return OriginalHook(SMN.SummonBahamut);
@@ -231,25 +243,28 @@ namespace XIVComboExpandedPlugin.Combos
                         }
                     }
 
-                    if (!gauge.IsIfritAttuned && !gauge.IsTitanAttuned &&
-                        !gauge.IsGarudaAttuned && gauge.SummonTimerRemaining > 0)
-                    {
-                        // Rekindle
-                        if (level >= SMN.Levels.EnkindleBahamut && IsOffCooldown(OriginalHook(SMN.EnkindleBahamut)))
-                            return OriginalHook(SMN.EnkindleBahamut);
 
-                        //if (level >= SMN.Levels.Rekindle && IsOffCooldown(OriginalHook(SMN.AstralFlow)) && this.currentSummon == "phoenix")
-                        //    return OriginalHook(SMN.Rekindle);
-                    }
-
-                    if (level >= SMN.Levels.AstralFlow && !gauge.IsIfritAttuned &&
-                        !gauge.IsTitanAttuned &&
-                        !gauge.IsGarudaAttuned && gauge.SummonTimerRemaining > 0 &&
-                        IsOffCooldown(OriginalHook(SMN.AstralFlow)))
+                    if (level >= SMN.Levels.CrimsonCyclone && HasEffect(SMN.Buffs.IfritsFavor) &&
+                        IsTargetInRange()) // CrimsonCyclone 
                     {
+                        this.summonGcdUsedCount = this.summonGcdUsedCount + 1;
                         return OriginalHook(SMN.AstralFlow);
                     }
 
+                    if (level >= SMN.Levels.CrimsonStrike && !HasEffect(SMN.Buffs.IfritsFavor) &&
+                        lastComboMove == SMN.CrimsonCyclone && IsTargetInRange()) // CrimsonStrike 
+                    {
+                        this.summonGcdUsedCount = this.summonGcdUsedCount + 1;
+                        return OriginalHook(SMN.AstralFlow);
+                    }
+
+
+                    if (level >= SMN.Levels.AstralFlow && HasEffect(ALL.Buffs.Swiftcast) && // Slipstream
+                        HasEffect(SMN.Buffs.GarudasFavor))
+                    {
+                        this.summonGcdUsedCount = this.summonGcdUsedCount + 1;
+                        return OriginalHook(SMN.AstralFlow);
+                    }
 
                     if (level >= SMN.Levels.AstralImpulse && this.currentSummon == "bahamut")
                     {
@@ -276,21 +291,52 @@ namespace XIVComboExpandedPlugin.Combos
                     return OriginalHook(actionID);
                 }
 
-
-                if (level >= ALL.Levels.LucidDream && GetPlayerMana() <= 40 && IsOffCooldown(ALL.LucidDream))
-                    return ALL.LucidDream;
-
-
                 if (level >= SMN.Levels.ElementalMastery && HasEffect(SMN.Buffs.TitansFavor))
                     return SMN.MountainBuster;
 
 
-                if (gauge.IsTitanAttuned)
+                if (CanUseSearingLight)
                 {
-                    if (level >= SMN.Levels.MountainBuster && IsOffCooldown(SMN.MountainBuster) &&
-                        this.summonGcdUsedCount >= 3)
-                        return SMN.MountainBuster;
+                    return OriginalHook(SMN.SearingLight);
                 }
+
+                if (level >= 88 && GetCooldown(SMN.RadiantAegis).RemainingCharges > 0 && HasPetPresent() &&
+                    !gauge.IsIfritAttuned &&
+                    !gauge.IsTitanAttuned &&
+                    !gauge.IsGarudaAttuned && gauge.SummonTimerRemaining <= 0 && HasCondition(ConditionFlag.InCombat))
+                {
+                    return OriginalHook(SMN.RadiantAegis);
+                }
+
+                if (level < 88 && level >= SMN.Levels.RadiantAegis && IsOffCooldown(SMN.RadiantAegis) &&
+                    HasPetPresent() &&
+                    !gauge.IsIfritAttuned &&
+                    !gauge.IsTitanAttuned &&
+                    !gauge.IsGarudaAttuned && gauge.SummonTimerRemaining <= 0 && HasCondition(ConditionFlag.InCombat))
+                {
+                    return OriginalHook(SMN.RadiantAegis);
+                }
+
+
+                if (!gauge.IsIfritAttuned && !gauge.IsTitanAttuned &&
+                    !gauge.IsGarudaAttuned && gauge.SummonTimerRemaining > 0)
+                {
+                    // Rekindle
+                    if (level >= SMN.Levels.EnkindleBahamut && IsOffCooldown(OriginalHook(SMN.EnkindleBahamut)))
+                        return OriginalHook(SMN.EnkindleBahamut);
+                }
+
+                if (level >= SMN.Levels.AstralFlow && !gauge.IsIfritAttuned &&
+                    !gauge.IsTitanAttuned &&
+                    !gauge.IsGarudaAttuned && gauge.SummonTimerRemaining > 0 &&
+                    IsOffCooldown(OriginalHook(SMN.AstralFlow)))
+                {
+                    return OriginalHook(SMN.AstralFlow);
+                }
+
+
+                if (level >= ALL.Levels.LucidDream && GetPlayerMana() <= 40 && IsOffCooldown(ALL.LucidDream))
+                    return ALL.LucidDream;
 
 
                 if (IsOffCooldown(SMN.Fester) && gauge.AetherflowStacks > 0)
@@ -300,26 +346,17 @@ namespace XIVComboExpandedPlugin.Combos
 
                 if (level >= SMN.Levels.EnergyDrain && IsOffCooldown(SMN.EnergyDrain))
                     return SMN.EnergyDrain;
-
-                //if (IsEnabled(CustomComboPreset.SummonerRuinTitansFavorFeature))
-                //{
-                //    if (level >= SMN.Levels.ElementalMastery && HasEffect(SMN.Buffs.TitansFavor))
-                //        return SMN.MountainBuster;
-                //}
-//
-                //if (IsEnabled(CustomComboPreset.SummonerRuinFeature))
-                //{
-                //    if (level >= SMN.Levels.Gemshine)
-                //    {
-                //        if (gauge.IsIfritAttuned || gauge.IsTitanAttuned || gauge.IsGarudaAttuned)
-                //            return OriginalHook(SMN.Gemshine);
-                //    }
-                //}
-//
-                //if (IsEnabled(CustomComboPreset.SummonerFurtherRuinFeature))
-                //{
-                //    if (level >= SMN.Levels.Ruin4 && gauge.SummonTimerRemaining == 0 && gauge.AttunmentTimerRemaining == 0 && HasEffect(SMN.Buffs.FurtherRuin))
-                // }        return SMN.Ruin4;
+                
+                if (level >= ALL.Levels.Addle)
+                {
+                    if (IsOffCooldown(ALL.Addle))
+                    {
+                        if (IsEnemyCasting() && GetEnemyCastingTimeRemaining() <= 5 &&
+                            GetEnemyCastingTimeRemaining() >= 1)
+                            //PluginLog.Debug("Casting type: " + GetCastingType() + " - " + GetCastingName());
+                            return ALL.Addle;
+                    }
+                }
             }
 
             return actionID;
@@ -377,6 +414,11 @@ namespace XIVComboExpandedPlugin.Combos
                     return OriginalHook(SMN.RadiantAegis);
                 }
 
+                if (level >= SMN.Levels.Slipstream && HasEffect(SMN.Buffs.GarudasFavor) && IsOffCooldown(ALL.Swiftcast))
+                {
+                    return ALL.Swiftcast;
+                }
+
                 if (IsUnderGcd(SMN.GCD_SKILL))
                 {
                     if (!gauge.IsIfritAttuned &&
@@ -388,7 +430,8 @@ namespace XIVComboExpandedPlugin.Combos
 
                         if (level >= SMN.Levels.SummonBahamut && gauge.IsBahamutReady &&
                             IsOffCooldown(SMN.SummonBahamut) &&
-                            !gauge.IsTitanAttuned && !gauge.IsGarudaAttuned && !gauge.IsIfritAttuned && HasCondition(ConditionFlag.InCombat))
+                            !gauge.IsTitanAttuned && !gauge.IsGarudaAttuned && !gauge.IsIfritAttuned &&
+                            HasCondition(ConditionFlag.InCombat))
                         {
                             this.currentSummon = "bahamut";
                             return OriginalHook(SMN.SummonBahamut);
@@ -442,6 +485,28 @@ namespace XIVComboExpandedPlugin.Combos
                         !gauge.IsGarudaAttuned && gauge.SummonTimerRemaining > 0 &&
                         IsOffCooldown(OriginalHook(SMN.AstralFlow)))
                     {
+                        return OriginalHook(SMN.AstralFlow);
+                    }
+
+
+                    if (level >= SMN.Levels.AstralFlow && HasEffect(ALL.Buffs.Swiftcast) &&
+                        HasEffect(SMN.Buffs.GarudasFavor))
+                    {
+                        this.summonGcdUsedCount = this.summonGcdUsedCount + 1;
+                        return OriginalHook(SMN.AstralFlow);
+                    }
+
+                    if (level >= SMN.Levels.CrimsonCyclone && HasEffect(SMN.Buffs.IfritsFavor) &&
+                        IsTargetInRange()) // CrimsonCyclone 
+                    {
+                        this.summonGcdUsedCount = this.summonGcdUsedCount + 1;
+                        return OriginalHook(SMN.AstralFlow);
+                    }
+
+                    if (level >= SMN.Levels.CrimsonStrike && !HasEffect(SMN.Buffs.IfritsFavor) &&
+                        lastComboMove == SMN.CrimsonCyclone && IsTargetInRange()) // CrimsonStrike 
+                    {
+                        this.summonGcdUsedCount = this.summonGcdUsedCount + 1;
                         return OriginalHook(SMN.AstralFlow);
                     }
 

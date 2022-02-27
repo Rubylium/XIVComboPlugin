@@ -99,13 +99,28 @@ namespace XIVComboExpandedPlugin.Combos
     internal class SamuraiYukikaze : CustomCombo
     {
         private bool CanUseThing = false;
+        private double xOldPos = 0.0;
         protected internal override CustomComboPreset Preset { get; } = CustomComboPreset.SamuraiYukikazeCombo;
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
             if (actionID == SAM.Yukikaze)
             {
+                
                 var gauge = GetJobGauge<SAMGauge>();
+                var isMoving = false;
+                if (LocalPlayer != null)
+                {
+                    var newXPos = LocalPlayer.Position.X;
+                    if (newXPos != this.xOldPos)
+                    {
+                        isMoving = true;
+                    }
+
+                    xOldPos = newXPos;
+                }
+
+                //PluginLog.Log("Is moving ? " + isMoving);
 
                 var sens = 0;
                 if (gauge.HasGetsu)
@@ -123,10 +138,10 @@ namespace XIVComboExpandedPlugin.Combos
                     sens = sens + 1;
                 }
 
-                if (!HasCondition(ConditionFlag.InCombat) || CurrentTarget == null)
-                    CanUseThing = false;
-                else if (lastComboMove == SAM.Yukikaze)
-                    CanUseThing = true;
+                //if (!HasCondition(ConditionFlag.InCombat) || CurrentTarget == null)
+                //    CanUseThing = false;
+                //else if (lastComboMove == SAM.Yukikaze)
+                //    CanUseThing = true;
 
                 if (CurrentTarget != null && LocalPlayer != null)
                 {
@@ -144,12 +159,12 @@ namespace XIVComboExpandedPlugin.Combos
                 {
                     //if (lastComboMove != null && comboTime != null) // Debug lul
                     //    PluginLog.Log("lastComboMove = " + lastComboMove + " time = " + comboTime);
-                    if (level >= SAM.Levels.TsubameGaeshi && gauge.Sen == Sen.NONE &&
-                        IsOffCooldown(SAM.TsubameGaeshi) && HasCondition(ConditionFlag.InCombat))
-                    {
-                        if (CanUseThing)
-                            return OriginalHook(SAM.TsubameGaeshi);
-                    }
+                    //if (level >= SAM.Levels.TsubameGaeshi && gauge.Sen == Sen.NONE &&
+                    //    IsOffCooldown(SAM.TsubameGaeshi) && HasCondition(ConditionFlag.InCombat))
+                    //{
+                    //    if (CanUseThing && !isMoving)
+                    //        return OriginalHook(SAM.TsubameGaeshi);
+                    //}
 
                     if (!gauge.HasSetsu)
                     {
@@ -165,16 +180,21 @@ namespace XIVComboExpandedPlugin.Combos
                         return SAM.Hakaze;
                     }
 
-                    if (level >= SAM.Levels.Iaijutsu && !TargetHasEffect(SAM.Debuffs.Higanbana) && gauge.HasSetsu)
+                    if (!isMoving)
                     {
-                        return SAM.Higanbana;
+                        if (level >= SAM.Levels.Iaijutsu && !TargetHasEffect(SAM.Debuffs.Higanbana) && gauge.HasSetsu)
+                        {
+                            return SAM.Higanbana;
+                        }
+
+                        if (level >= SAM.Levels.Iaijutsu && FindTargetEffect(SAM.Debuffs.Higanbana) != null &&
+                            FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime <= 20 &&
+                            gauge.HasSetsu && sens <= 1)
+                        {
+                            return SAM.Higanbana;
+                        }
                     }
 
-                    if (level >= SAM.Levels.Iaijutsu && FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime <= 20 &&
-                        gauge.HasSetsu && sens <= 1)
-                    {
-                        return SAM.Higanbana;
-                    }
 
                     if (!gauge.HasGetsu)
                     {
@@ -210,10 +230,15 @@ namespace XIVComboExpandedPlugin.Combos
                         return SAM.Hakaze;
                     }
 
-                    if (level >= SAM.Levels.Iaijutsu && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu)
+                    if (!isMoving)
                     {
-                        return SAM.MidareSetsugekka;
+                        if (level >= SAM.Levels.Iaijutsu && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu)
+                        {
+                            return SAM.MidareSetsugekka;
+                        }
                     }
+
+                    return SAM.Hakaze;
                 }
 
                 if (level >= SAM.Levels.Feint && IsOffCooldown(SAM.Feint))
@@ -241,11 +266,11 @@ namespace XIVComboExpandedPlugin.Combos
                 if (level >= SAM.Levels.HissatsuSenei && IsOffCooldown(SAM.HissatsuSenei) && gauge.Kenki >= 25)
                     return SAM.HissatsuSenei;
 
-                if (level >= SAM.Levels.HissatsuKaiten && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu &&
-                    gauge.Kenki >= 20)
-                {
-                    return SAM.HissatsuKaiten;
-                }
+                //if (level >= SAM.Levels.HissatsuKaiten && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu &&
+                //    gauge.Kenki >= 20)
+                //{
+                //    return SAM.HissatsuKaiten;
+                //}
 
 
                 if (sens < 3)

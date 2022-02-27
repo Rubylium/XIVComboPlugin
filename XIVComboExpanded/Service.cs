@@ -5,6 +5,7 @@ using Dalamud.Game.ClientState.Buddy;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.JobGauge;
 using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.ClientState.Party;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
 using Dalamud.IoC;
@@ -100,7 +101,8 @@ namespace XIVComboExpandedPlugin
         /// <summary>
         /// Gets the Dalamud target manager.
         /// </summary>
-        [PluginService]
-        internal static TargetManager TargetManager { get; private set; } = null!;
+        [PluginService] public static TargetManager TargetManager { get; private set; } = null!;
+
+        [PluginService] public static PartyList PartyList { get; private set; }
     }
 }

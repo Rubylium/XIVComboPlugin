@@ -38,6 +38,7 @@ namespace XIVComboExpandedPlugin.Combos
             HissatsuSenei = 16481,
             HissatsuGuren = 7496,
             HissatsuKaiten = 7494,
+            KaeshiSetsugekka = 16486,
             Ikishoten = 16482,
             Shoha2 = 25779,
             OgiNamikiri = 25781,
@@ -84,6 +85,8 @@ namespace XIVComboExpandedPlugin.Combos
                 HissatsuKaiten = 52,
                 HissatsuShinten = 62,
                 TsubameGaeshi = 76,
+                KaeshiHiganbana = 76,
+                KaeshiSetsugekka = 76,
                 Ikishoten = 68,
                 Shoha = 80,
                 Shoha2 = 82,
@@ -92,6 +95,7 @@ namespace XIVComboExpandedPlugin.Combos
                 Iaijutsu = 30,
                 Feint = 22,
                 TrueNorth = 50,
+                KaeshiNamikiri = 90,
                 OgiNamikiri = 90;
         }
     }
@@ -177,6 +181,21 @@ namespace XIVComboExpandedPlugin.Combos
                     //    if (CanUseThing && !isMoving)
                     //        return OriginalHook(SAM.TsubameGaeshi);
                     //}
+
+                    if (level >= SAM.Levels.KaeshiSetsugekka && gauge.Kaeshi == Kaeshi.SETSUGEKKA)
+                    {
+                        return SAM.KaeshiSetsugekka;
+                    }
+                    
+                    if (level >= SAM.Levels.KaeshiHiganbana && gauge.Kaeshi == Kaeshi.HIGANBANA)
+                    {
+                        return SAM.KaeshiHiganbana;
+                    }
+
+                    if (level >= SAM.Levels.KaeshiNamikiri && gauge.Kaeshi == Kaeshi.NAMIKIRI)
+                    {
+                        return SAM.KaeshiNamikiri;
+                    }
 
                     if (level >= SAM.Levels.OgiNamikiri && HasEffect(SAM.Buffs.OgiNamikiriReady) && !this.isMoving)
                     {
@@ -281,7 +300,6 @@ namespace XIVComboExpandedPlugin.Combos
                 {
                     return SAM.TrueNorth;
                 }
-
 
                 if (level >= SAM.Levels.MeikyoShisui && IsOffCooldown(SAM.MeikyoShisui))
                 {

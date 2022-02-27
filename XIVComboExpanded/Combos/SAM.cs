@@ -320,7 +320,8 @@ namespace XIVComboExpandedPlugin.Combos
                     return SAM.Hagakure;
                 }
 
-                if (level >= SAM.Levels.HissatsuKaiten && gauge.Kenki >= 20 && !HasEffect(SAM.Buffs.Kaiten))
+                if (level >= SAM.Levels.HissatsuKaiten && gauge.Kenki >= 20 && !HasEffect(SAM.Buffs.Kaiten) &&
+                    IsOffCooldown(SAM.HissatsuKaiten))
                 {
                     if (GetCooldown(SAM.TsubameGaeshi).RemainingCharges > 0 ||
                         GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining > 8)
@@ -359,12 +360,6 @@ namespace XIVComboExpandedPlugin.Combos
                 }
 
 
-                if (level >= SAM.Levels.TrueNorth && GetCooldown(SAM.TrueNorth).RemainingCharges > 0 &&
-                    !HasEffect(SAM.Buffs.TrueNorth))
-                {
-                    return SAM.TrueNorth;
-                }
-
                 if (level >= SAM.Levels.Shoha && gauge.MeditationStacks >= 3 && IsOffCooldown(SAM.Shoha))
                     return SAM.Shoha;
 
@@ -396,6 +391,13 @@ namespace XIVComboExpandedPlugin.Combos
                     {
                         return SAM.HissatsuShinten;
                     }
+                }
+
+
+                if (level >= SAM.Levels.TrueNorth && GetCooldown(SAM.TrueNorth).RemainingCharges > 0 &&
+                    !HasEffect(SAM.Buffs.TrueNorth))
+                {
+                    return SAM.TrueNorth;
                 }
             }
 

@@ -34,6 +34,7 @@ namespace XIVComboExpandedPlugin.Combos
             Shoha = 16487,
             // Misc
             HissatsuShinten = 7490,
+            Hagakure = 7495,
             HissatsuKyuten = 7491,
             HissatsuSenei = 16481,
             HissatsuGuren = 7496,
@@ -84,6 +85,7 @@ namespace XIVComboExpandedPlugin.Combos
                 HissatsuSenei = 72,
                 HissatsuKaiten = 52,
                 HissatsuShinten = 62,
+                Hagakure = 68,
                 TsubameGaeshi = 76,
                 KaeshiHiganbana = 76,
                 KaeshiSetsugekka = 76,
@@ -182,12 +184,14 @@ namespace XIVComboExpandedPlugin.Combos
                     //        return OriginalHook(SAM.TsubameGaeshi);
                     //}
 
-                    if (level >= SAM.Levels.KaeshiSetsugekka && gauge.Kaeshi == Kaeshi.SETSUGEKKA)
+                    if (level >= SAM.Levels.KaeshiSetsugekka && gauge.Kaeshi == Kaeshi.SETSUGEKKA &&
+                        GetCooldown(SAM.KaeshiSetsugekka).RemainingCharges > 0)
                     {
                         return SAM.KaeshiSetsugekka;
                     }
-                    
-                    if (level >= SAM.Levels.KaeshiHiganbana && gauge.Kaeshi == Kaeshi.HIGANBANA)
+
+                    if (level >= SAM.Levels.KaeshiHiganbana && gauge.Kaeshi == Kaeshi.HIGANBANA &&
+                        GetCooldown(SAM.KaeshiHiganbana).RemainingCharges > 0)
                     {
                         return SAM.KaeshiHiganbana;
                     }
@@ -218,16 +222,30 @@ namespace XIVComboExpandedPlugin.Combos
 
                     if (!isMoving)
                     {
-                        if (level >= SAM.Levels.Iaijutsu && !TargetHasEffect(SAM.Debuffs.Higanbana) && gauge.HasSetsu)
+                        if (GetCooldown(SAM.TsubameGaeshi).RemainingCharges > 0 ||
+                            GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining > 8)
                         {
-                            return SAM.Higanbana;
-                        }
+                            if (level >= SAM.Levels.Iaijutsu && !TargetHasEffect(SAM.Debuffs.Higanbana) &&
+                                gauge.HasSetsu)
+                            {
+                                return SAM.Higanbana;
+                            }
 
-                        if (level >= SAM.Levels.Iaijutsu && FindTargetEffect(SAM.Debuffs.Higanbana) != null &&
-                            FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime <= 20 &&
-                            gauge.HasSetsu && sens <= 1)
+                            if (level >= SAM.Levels.Iaijutsu && FindTargetEffect(SAM.Debuffs.Higanbana) != null &&
+                                FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime <= 20 &&
+                                gauge.HasSetsu && sens <= 1)
+                            {
+                                return SAM.Higanbana;
+                            }
+                        }
+                        else
                         {
-                            return SAM.Higanbana;
+                            if (level >= SAM.Levels.Hagakure &&
+                                GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining < 8 &&
+                                IsOffCooldown(SAM.Hagakure))
+                            {
+                                return SAM.Hagakure;
+                            }
                         }
                     }
 
@@ -268,9 +286,22 @@ namespace XIVComboExpandedPlugin.Combos
 
                     if (!isMoving)
                     {
-                        if (level >= SAM.Levels.Iaijutsu && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu)
+                        if (GetCooldown(SAM.TsubameGaeshi).RemainingCharges > 0 ||
+                            GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining > 8)
                         {
-                            return SAM.MidareSetsugekka;
+                            if (level >= SAM.Levels.Iaijutsu && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu)
+                            {
+                                return SAM.MidareSetsugekka;
+                            }
+                        }
+                        else
+                        {
+                            if (level >= SAM.Levels.Hagakure &&
+                                GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining < 8 &&
+                                IsOffCooldown(SAM.Hagakure))
+                            {
+                                return SAM.Hagakure;
+                            }
                         }
                     }
                     else

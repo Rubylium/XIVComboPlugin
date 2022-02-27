@@ -363,6 +363,10 @@ namespace XIVComboExpandedPlugin.Combos
                     return SAM.TrueNorth;
                 }
 
+                if (level >= SAM.Levels.Shoha && gauge.MeditationStacks >= 3 && IsOffCooldown(SAM.Shoha))
+                    return SAM.Shoha;
+
+
                 if (level >= SAM.Levels.MeikyoShisui && level < 88 && IsOffCooldown(SAM.MeikyoShisui))
                 {
                     return SAM.MeikyoShisui;

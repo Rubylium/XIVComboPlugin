@@ -1,4 +1,8 @@
+using System.Linq;
 using Dalamud.Game.ClientState.JobGauge.Types;
+using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.ClientState.Party;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Graphics;
 using Lumina.Data.Parsing;
 
@@ -98,15 +102,17 @@ namespace XIVComboExpandedPlugin.Combos
             if (actionID == WAR.StormsPath)
             {
                 var gauge = GetJobGauge<WARGauge>();
-                if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
-                     CurrentTarget.HitboxRadius) >= 4.0)
+                if (CurrentTarget != null && LocalPlayer != null)
                 {
-                    if (level >= WAR.Levels.Tomahawk)
+                    if ((System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
+                         CurrentTarget.HitboxRadius) >= 4.0)
                     {
-                        return WAR.Tomahawk;
+                        if (level >= WAR.Levels.Tomahawk)
+                        {
+                            return WAR.Tomahawk;
+                        }
                     }
                 }
-
 
                 if (IsUnderGcd(WAR.GCD_SKILL))
                 {
@@ -126,6 +132,7 @@ namespace XIVComboExpandedPlugin.Combos
                             return WAR.StormsEye;
 
                         if (lastComboMove == WAR.Maim && level >= WAR.Levels.StormsEye &&
+                            FindEffect(WAR.Buffs.SurgingTempest) != null &&
                             FindEffect(WAR.Buffs.SurgingTempest).RemainingTime <= 15 &&
                             !HasEffect(WAR.Buffs.InnerRelease))
                             return WAR.StormsEye;
@@ -144,10 +151,8 @@ namespace XIVComboExpandedPlugin.Combos
                                 return WAR.InnerBeast;
                             }
 
-
                             return WAR.StormsPath;
                         }
-
 
                         if (lastComboMove == WAR.HeavySwing && level >= WAR.Levels.Maim &&
                             !HasEffect(WAR.Buffs.InnerRelease))
@@ -206,13 +211,24 @@ namespace XIVComboExpandedPlugin.Combos
                         return WAR.ShakeItOff;
                 }
 
+                if (level >= WAR.Levels.NascentFlash && IsOffCooldown(WAR.NascentFlash))
+                {
+                    var target = Service.PartyList.OrderBy(x => x.CurrentHP).FirstOrDefault();
+                    if (target != null && target.Name != LocalPlayer.Name)
+                    {
+                        if ((target.CurrentHP * 100) / target.MaxHP <= 80)
+                        {
+                            XIVComboExpandedPlugin.TargetManager.SetTarget(target.GameObject);
+                            return OriginalHook(WAR.NascentFlash);
+                        }
+                    }
+                }
 
                 if (GetPlayerHealth() <= 70 &&
                     IsOffCooldown(WAR.RawIntuition) && level >= WAR.Levels.RawIntuition)
                 {
                     return OriginalHook(WAR.RawIntuition);
                 }
-
 
                 if (GetPlayerHealth() <= 60 &&
                     IsOffCooldown(WAR.ThrillOfBattle) && level >= WAR.Levels.ThrillOfBattle)
@@ -225,7 +241,6 @@ namespace XIVComboExpandedPlugin.Combos
                 {
                     return WAR.Equilibrium;
                 }
-
 
                 if (!HasEffect(WAR.Buffs.InnerRelease))
                 {
@@ -240,7 +255,6 @@ namespace XIVComboExpandedPlugin.Combos
                             return WAR.Onslaugth;
                         }
                     }
-
 
                     if (level >= WAR.Levels.InnerRelease && IsOffCooldown(WAR.InnerRelease))
                     {
@@ -263,7 +277,6 @@ namespace XIVComboExpandedPlugin.Combos
                     {
                         return WAR.Upheaval;
                     }
-
 
                     if (level >= WAR.Levels.Onslaugth &&
                         GetCooldown(WAR.Onslaugth).RemainingCharges > 0)

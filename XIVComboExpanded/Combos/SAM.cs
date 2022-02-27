@@ -166,6 +166,11 @@ namespace XIVComboExpandedPlugin.Combos
                     //        return OriginalHook(SAM.TsubameGaeshi);
                     //}
 
+                    if (level >= SAM.Levels.OgiNamikiri && HasEffect(SAM.Buffs.OgiNamikiriReady))
+                    {
+                        return SAM.OgiNamikiri;
+                    }
+                    
                     if (!gauge.HasSetsu)
                     {
                         if (level >= SAM.Levels.MeikyoShisui && HasEffect(SAM.Buffs.MeikyoShisui))
@@ -262,7 +267,7 @@ namespace XIVComboExpandedPlugin.Combos
                 {
                     return SAM.Ikishoten;
                 }
-
+                
                 if (level >= SAM.Levels.HissatsuSenei && IsOffCooldown(SAM.HissatsuSenei) && gauge.Kenki >= 25)
                     return SAM.HissatsuSenei;
 

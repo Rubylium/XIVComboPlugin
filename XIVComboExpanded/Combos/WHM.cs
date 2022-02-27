@@ -1,5 +1,7 @@
+using System.Linq;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.JobGauge.Types;
+using Dalamud.Game.ClientState.Party;
 
 namespace XIVComboExpandedPlugin.Combos
 {
@@ -64,6 +66,7 @@ namespace XIVComboExpandedPlugin.Combos
                 Tetragrammaton = 60,
                 AfflatusSolace = 52,
                 AfflatusMisery = 74,
+                Assize = 56,
                 AfflatusRapture = 76;
         }
     }
@@ -79,24 +82,59 @@ namespace XIVComboExpandedPlugin.Combos
             {
                 var gauge = GetJobGauge<WHMGauge>();
 
-                if (level >= ALL.Levels.LucidDream && GetPlayerMana() <= 40 && IsOffCooldown(ALL.LucidDream))
-                    return ALL.LucidDream;
+                if (CurrentTarget != null)
+                {
+                    if (Service.PartyList.Length > 1)
+                    {
+                        if (level >= WHM.Levels.Assize && IsOffCooldown(WHM.Assize))
+                        {
+                            var playersHealth = 0.0;
+                            var playersTotalHealth = 0.0;
+                            var playersHealthPourcent = 100.0;
 
-                if (level >= WHM.Levels.AfflatusSolace && gauge.Lily > 0 && GetTargetHealth() <= 60)
-                    return WHM.AfflatusSolace;
+                            foreach (PartyMember member in Service.PartyList)
+                            {
+                                playersHealth = playersHealth + member.CurrentHP;
+                                playersTotalHealth = playersTotalHealth + member.MaxHP;
+                            }
 
-                if (level >= WHM.Levels.Regen && GetTargetHealth() >= 90 && IsOffCooldown(WHM.Regen))
-                    return OriginalHook(WHM.Regen);
+                            playersHealthPourcent = (playersHealth * 100) / playersTotalHealth;
+                            if (playersHealthPourcent <= 60)
+                            {
+                                return WHM.Assize;
+                            }
+                        }
 
-                if (level >= WHM.Levels.Tetragrammaton && GetTargetHealth() <= 35 && IsOffCooldown(WHM.Tetragrammaton))
-                    return WHM.Tetragrammaton;
+                        var target = Service.PartyList.OrderBy(x => x.CurrentHP).FirstOrDefault();
+                        if (target != null && target.Name != LocalPlayer.Name)
+                        {
+                            if ((target.CurrentHP * 100) / target.MaxHP <= 50)
+                            {
+                                XIVComboExpandedPlugin.TargetManager.SetTarget(target.GameObject);
+                            }
+                        }
+                    }
 
-                if (level >= WHM.Levels.Benediction && GetTargetHealth() <= 35 && GetTargetHealth() > 0 &&
-                    IsOffCooldown(WHM.Benediction))
-                    return WHM.Benediction;
+                    if (level >= ALL.Levels.LucidDream && GetPlayerMana() <= 40 && IsOffCooldown(ALL.LucidDream))
+                        return ALL.LucidDream;
 
-                if (level >= WHM.Levels.Cure2 && HasEffect(WHM.Buffs.Freecure))
-                    return WHM.Cure2;
+                    if (level >= WHM.Levels.AfflatusSolace && gauge.Lily > 0 && GetTargetHealth() <= 60)
+                        return WHM.AfflatusSolace;
+
+                    if (level >= WHM.Levels.Regen && GetTargetHealth() >= 90 && IsOffCooldown(WHM.Regen))
+                        return OriginalHook(WHM.Regen);
+
+                    if (level >= WHM.Levels.Tetragrammaton && GetTargetHealth() <= 35 &&
+                        IsOffCooldown(WHM.Tetragrammaton))
+                        return WHM.Tetragrammaton;
+
+                    if (level >= WHM.Levels.Benediction && GetTargetHealth() <= 35 && GetTargetHealth() > 0 &&
+                        IsOffCooldown(WHM.Benediction))
+                        return WHM.Benediction;
+
+                    if (level >= WHM.Levels.Cure2 && HasEffect(WHM.Buffs.Freecure))
+                        return WHM.Cure2;
+                }
             }
 
             if (actionID == WHM.Stone)

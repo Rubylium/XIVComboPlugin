@@ -321,8 +321,7 @@ namespace XIVComboExpandedPlugin.Combos
                     return SAM.Hakaze;
                 }
 
-                if (GetCooldown(SAM.TsubameGaeshi).RemainingCharges > 0 ||
-                    GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining > 8)
+                if (GetCooldown(SAM.TsubameGaeshi).RemainingCharges > 0)
                 {
                     if (level >= SAM.Levels.HissatsuKaiten && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu &&
                         gauge.Kenki >= 20 && !this.isMoving)

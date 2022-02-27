@@ -471,7 +471,7 @@ namespace XIVComboExpandedPlugin.Combos
 
         protected static double GetPlayerManaExact()
         {
-            return LocalPlayer.CurrentMp * 100;
+            return (LocalPlayer.CurrentMp * 100) / LocalPlayer.MaxMp;
         }
 
         /// <summary>
@@ -511,8 +511,15 @@ namespace XIVComboExpandedPlugin.Combos
 
         protected static bool IsTargetInRange()
         {
-            return (System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
-                    CurrentTarget.HitboxRadius) <= 4.0;
+            if (CurrentTarget != null && LocalPlayer != null)
+            {
+                return (System.Numerics.Vector3.Distance(CurrentTarget.Position, LocalPlayer.Position) -
+                        CurrentTarget.HitboxRadius) <= 4.0;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         protected static bool IsTargetInRangeGiven(double range)

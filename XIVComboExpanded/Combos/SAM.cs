@@ -99,6 +99,8 @@ namespace XIVComboExpandedPlugin.Combos
     internal class SamuraiYukikaze : CustomCombo
     {
         private bool CanUseThing = false;
+        private bool isMoving = false;
+        private double isMovingOffset = 70;
         private double xOldPos = 0.0;
         protected internal override CustomComboPreset Preset { get; } = CustomComboPreset.SamuraiYukikazeCombo;
 
@@ -106,15 +108,25 @@ namespace XIVComboExpandedPlugin.Combos
         {
             if (actionID == SAM.Yukikaze)
             {
-                
                 var gauge = GetJobGauge<SAMGauge>();
-                var isMoving = false;
                 if (LocalPlayer != null)
                 {
                     var newXPos = LocalPlayer.Position.X;
                     if (newXPos != this.xOldPos)
                     {
-                        isMoving = true;
+                        this.isMovingOffset = 70;
+                        this.isMoving = true;
+                    }
+
+                    if (this.isMoving && isMovingOffset >= 0)
+                    {
+                        PluginLog.Log("isMovingOffset = " + this.isMovingOffset);
+                        this.isMovingOffset = this.isMovingOffset - 1;
+                    }
+
+                    if (this.isMovingOffset <= 0)
+                    {
+                        this.isMoving = false;
                     }
 
                     xOldPos = newXPos;
@@ -166,11 +178,11 @@ namespace XIVComboExpandedPlugin.Combos
                     //        return OriginalHook(SAM.TsubameGaeshi);
                     //}
 
-                    if (level >= SAM.Levels.OgiNamikiri && HasEffect(SAM.Buffs.OgiNamikiriReady))
+                    if (level >= SAM.Levels.OgiNamikiri && HasEffect(SAM.Buffs.OgiNamikiriReady) && !this.isMoving)
                     {
                         return SAM.OgiNamikiri;
                     }
-                    
+
                     if (!gauge.HasSetsu)
                     {
                         if (level >= SAM.Levels.MeikyoShisui && HasEffect(SAM.Buffs.MeikyoShisui))
@@ -242,6 +254,19 @@ namespace XIVComboExpandedPlugin.Combos
                             return SAM.MidareSetsugekka;
                         }
                     }
+                    else
+                    {
+                        if (level >= SAM.Levels.MeikyoShisui && HasEffect(SAM.Buffs.MeikyoShisui))
+                            return SAM.Yukikaze;
+
+                        if (comboTime > 0)
+                        {
+                            if (lastComboMove == SAM.Hakaze && level >= SAM.Levels.Yukikaze)
+                                return SAM.Yukikaze;
+                        }
+
+                        return SAM.Hakaze;
+                    }
 
                     return SAM.Hakaze;
                 }
@@ -267,7 +292,7 @@ namespace XIVComboExpandedPlugin.Combos
                 {
                     return SAM.Ikishoten;
                 }
-                
+
                 if (level >= SAM.Levels.HissatsuSenei && IsOffCooldown(SAM.HissatsuSenei) && gauge.Kenki >= 25)
                     return SAM.HissatsuSenei;
 

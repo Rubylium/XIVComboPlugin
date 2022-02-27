@@ -321,14 +321,28 @@ namespace XIVComboExpandedPlugin.Combos
                     return SAM.Hakaze;
                 }
 
-                if (GetCooldown(SAM.TsubameGaeshi).RemainingCharges > 0)
+                if (level >= SAM.Levels.HissatsuKaiten && gauge.Kenki >= 20)
                 {
-                    if (level >= SAM.Levels.HissatsuKaiten && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu &&
-                        gauge.Kenki >= 20 && !this.isMoving)
+                    if (GetCooldown(SAM.TsubameGaeshi).RemainingCharges > 0)
+                    {
+                        if (gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu &&
+                            !this.isMoving)
+                        {
+                            return SAM.HissatsuKaiten;
+                        }
+
+                        if (gauge.HasSetsu && !this.isMoving)
+                        {
+                            return SAM.HissatsuKaiten;
+                        }
+                    }
+
+                    if (level >= SAM.Levels.OgiNamikiri && HasEffect(SAM.Buffs.OgiNamikiriReady) && !this.isMoving)
                     {
                         return SAM.HissatsuKaiten;
                     }
                 }
+
 
                 if (level >= SAM.Levels.TrueNorth && GetCooldown(SAM.TrueNorth).RemainingCharges > 0 &&
                     !HasEffect(SAM.Buffs.TrueNorth))

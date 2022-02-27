@@ -140,6 +140,7 @@ namespace XIVComboExpandedPlugin.Combos
         private int summonGcdUsedCount = 0;
         private Boolean rekydleUsed = false;
         private Boolean CanUseSearingLight = false;
+        private double xOldPos = 0.0;
         protected internal override CustomComboPreset Preset { get; } = CustomComboPreset.SmnAny;
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
@@ -147,6 +148,19 @@ namespace XIVComboExpandedPlugin.Combos
             if (actionID == SMN.Ruin || actionID == SMN.Ruin2 || actionID == SMN.Ruin3)
             {
                 var gauge = GetJobGauge<SMNGauge>();
+                var isMoving = false;
+                if (LocalPlayer != null)
+                {
+                    var newXPos = LocalPlayer.Position.X;
+                    if (newXPos != this.xOldPos)
+                    {
+                        isMoving = true;
+                    }
+
+                    this.xOldPos = newXPos;
+                }
+
+
                 if (gauge.SummonTimerRemaining <= 0)
                 {
                     this.summonGcdUsedCount = 0;
@@ -275,7 +289,13 @@ namespace XIVComboExpandedPlugin.Combos
 
                     if (level >= SMN.Levels.Gemshine)
                     {
-                        if (gauge.IsIfritAttuned || gauge.IsTitanAttuned || gauge.IsGarudaAttuned)
+                        if (gauge.IsTitanAttuned || gauge.IsGarudaAttuned)
+                        {
+                            this.summonGcdUsedCount = this.summonGcdUsedCount + 1;
+                            return OriginalHook(SMN.Gemshine);
+                        }
+
+                        if (gauge.IsIfritAttuned && !isMoving)
                         {
                             this.summonGcdUsedCount = this.summonGcdUsedCount + 1;
                             return OriginalHook(SMN.Gemshine);
@@ -346,7 +366,7 @@ namespace XIVComboExpandedPlugin.Combos
 
                 if (level >= SMN.Levels.EnergyDrain && IsOffCooldown(SMN.EnergyDrain))
                     return SMN.EnergyDrain;
-                
+
                 if (level >= ALL.Levels.Addle)
                 {
                     if (IsOffCooldown(ALL.Addle))

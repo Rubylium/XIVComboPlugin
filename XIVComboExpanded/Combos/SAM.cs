@@ -326,17 +326,29 @@ namespace XIVComboExpandedPlugin.Combos
                     if (GetCooldown(SAM.TsubameGaeshi).RemainingCharges > 0 ||
                         GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining > 8)
                     {
-                        if (gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu &&
-                            !this.isMoving)
-                        {
-                            return SAM.HissatsuKaiten;
-                        }
-
-                        if (gauge.HasSetsu && !this.isMoving)
+                        if (level >= SAM.Levels.Iaijutsu && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu)
                         {
                             return SAM.HissatsuKaiten;
                         }
                     }
+
+                    if (GetCooldown(SAM.TsubameGaeshi).RemainingCharges > 0 ||
+                        GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining > 8)
+                    {
+                        if (level >= SAM.Levels.Iaijutsu && !TargetHasEffect(SAM.Debuffs.Higanbana) &&
+                            gauge.HasSetsu)
+                        {
+                            return SAM.HissatsuKaiten;
+                        }
+
+                        if (level >= SAM.Levels.Iaijutsu && FindTargetEffect(SAM.Debuffs.Higanbana) != null &&
+                            FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime <= 20 &&
+                            gauge.HasSetsu && sens <= 1)
+                        {
+                            return SAM.HissatsuKaiten;
+                        }
+                    }
+
 
                     if (level >= SAM.Levels.OgiNamikiri && HasEffect(SAM.Buffs.OgiNamikiriReady) && !this.isMoving)
                     {

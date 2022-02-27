@@ -323,7 +323,8 @@ namespace XIVComboExpandedPlugin.Combos
 
                 if (level >= SAM.Levels.HissatsuKaiten && gauge.Kenki >= 20)
                 {
-                    if (GetCooldown(SAM.TsubameGaeshi).RemainingCharges > 0)
+                    if (GetCooldown(SAM.TsubameGaeshi).RemainingCharges > 0 ||
+                        GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining > 8)
                     {
                         if (gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu &&
                             !this.isMoving)

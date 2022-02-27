@@ -177,7 +177,6 @@ namespace XIVComboExpandedPlugin.Combos
 
                 if (IsUnderGcd(SAM.GCD_SKILL))
                 {
-
                     if (level >= SAM.Levels.KaeshiSetsugekka && gauge.Kaeshi == Kaeshi.SETSUGEKKA &&
                         GetCooldown(SAM.KaeshiSetsugekka).RemainingCharges > 0)
                     {
@@ -370,13 +369,14 @@ namespace XIVComboExpandedPlugin.Combos
                     return SAM.Shoha;
 
 
-                if (level >= SAM.Levels.MeikyoShisui && level < 88 && IsOffCooldown(SAM.MeikyoShisui))
+                if (level >= SAM.Levels.MeikyoShisui && level < 88 && IsOffCooldown(SAM.MeikyoShisui) &&
+                    !HasEffect(SAM.Buffs.MeikyoShisui))
                 {
                     return SAM.MeikyoShisui;
                 }
 
                 if (level >= SAM.Levels.MeikyoShisui && level >= 88 &&
-                    GetCooldown(SAM.MeikyoShisui).RemainingCharges > 0)
+                    GetCooldown(SAM.MeikyoShisui).RemainingCharges > 0 && !HasEffect(SAM.Buffs.MeikyoShisui))
                 {
                     return SAM.MeikyoShisui;
                 }

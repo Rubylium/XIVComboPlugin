@@ -1,21 +1,24 @@
 using System;
 using System.Linq;
-
+using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
+using FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace XIVComboExpandedPlugin
 {
     /// <summary>
     /// Main plugin implementation.
     /// </summary>
-    public sealed partial class XIVComboExpandedPlugin : IDalamudPlugin
+    public unsafe partial class XIVComboExpandedPlugin : IDalamudPlugin
     {
         private const string Command = "/pcombo";
 
         private readonly WindowSystem windowSystem;
         private readonly ConfigWindow configWindow;
+        public static TargetManager TargetManager { get; private set; } = null!;
+        public static ActionManager ActionManager { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="XIVComboExpandedPlugin"/> class.

@@ -321,9 +321,14 @@ namespace XIVComboExpandedPlugin.Combos
                     return SAM.Hakaze;
                 }
 
-                if (level >= SAM.Levels.Feint && IsOffCooldown(SAM.Feint))
+                if (GetCooldown(SAM.TsubameGaeshi).RemainingCharges > 0 ||
+                    GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining > 8)
                 {
-                    return SAM.Feint;
+                    if (level >= SAM.Levels.HissatsuKaiten && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu &&
+                        gauge.Kenki >= 20 && !this.isMoving)
+                    {
+                        return SAM.HissatsuKaiten;
+                    }
                 }
 
                 if (level >= SAM.Levels.TrueNorth && GetCooldown(SAM.TrueNorth).RemainingCharges > 0 &&
@@ -332,7 +337,13 @@ namespace XIVComboExpandedPlugin.Combos
                     return SAM.TrueNorth;
                 }
 
-                if (level >= SAM.Levels.MeikyoShisui && IsOffCooldown(SAM.MeikyoShisui))
+                if (level >= SAM.Levels.MeikyoShisui && level < 88 && IsOffCooldown(SAM.MeikyoShisui))
+                {
+                    return SAM.MeikyoShisui;
+                }
+
+                if (level >= SAM.Levels.MeikyoShisui && level >= 88 &&
+                    GetCooldown(SAM.MeikyoShisui).RemainingCharges > 0)
                 {
                     return SAM.MeikyoShisui;
                 }
@@ -344,12 +355,6 @@ namespace XIVComboExpandedPlugin.Combos
 
                 if (level >= SAM.Levels.HissatsuSenei && IsOffCooldown(SAM.HissatsuSenei) && gauge.Kenki >= 25)
                     return SAM.HissatsuSenei;
-
-                //if (level >= SAM.Levels.HissatsuKaiten && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu &&
-                //    gauge.Kenki >= 20)
-                //{
-                //    return SAM.HissatsuKaiten;
-                //}
 
 
                 if (sens < 3)

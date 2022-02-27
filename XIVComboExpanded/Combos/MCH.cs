@@ -7,6 +7,7 @@ namespace XIVComboExpandedPlugin.Combos
     internal static class MCH
     {
         public const double GDC = 0.55;
+        public const uint GCD_SKILL = SplitShot;
         public const byte JobID = 31;
 
         public const uint
@@ -133,10 +134,202 @@ namespace XIVComboExpandedPlugin.Combos
                 var gauge = GetJobGauge<MCHGauge>();
                 var inCombat = HasCondition(Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat);
 
-                if (GetCooldown(MCH.SplitShot).CooldownRemaining <= MCH.GDC)
+                if (IsUnderGcd(MCH.GCD_SKILL))
                 {
                     if (gauge.IsOverheated && level >= MCH.Levels.HeatBlast && !HasEffect(MCH.Buffs.Reassemble))
                         return MCH.HeatBlast;
+
+                    if (level >= MCH.Levels.Chainsaw && IsOffCooldown(MCH.Chainsaw) &&
+                        HasEffect(MCH.Buffs.Reassemble))
+                    {
+                        return MCH.Chainsaw;
+                    }
+
+                    //if (level >= MCH.Levels.Chainsaw && IsOffCooldown(MCH.Chainsaw) &&
+                    //    GetCooldown(MCH.Reassemble).CooldownRemaining > 10)
+                    //{
+                    //    return MCH.Chainsaw;
+                    //}
+
+
+                    if (level >= MCH.Levels.AirAnchor && IsOffCooldown(MCH.AirAnchor) &&
+                        HasEffect(MCH.Buffs.Reassemble))
+                    {
+                        return MCH.AirAnchor;
+                    }
+
+                    if (level >= MCH.Levels.AirAnchor && IsOffCooldown(MCH.AirAnchor) &&
+                        GetCooldown(MCH.Reassemble).CooldownRemaining > 2)
+                    {
+                        return MCH.AirAnchor;
+                    }
+
+                    if (level < MCH.Levels.AirAnchor && level >= MCH.Levels.HotShot && IsOffCooldown(MCH.HotShot) &&
+                        HasEffect(MCH.Buffs.Reassemble))
+                    {
+                        return MCH.HotShot;
+                    }
+
+                    if (level < MCH.Levels.AirAnchor && level >= MCH.Levels.AirAnchor && IsOffCooldown(MCH.HotShot) &&
+                        GetCooldown(MCH.Reassemble).CooldownRemaining > 2)
+                    {
+                        return MCH.HotShot;
+                    }
+
+
+                    if (level >= MCH.Levels.Drill && IsOffCooldown(MCH.Drill) &&
+                        HasEffect(MCH.Buffs.Reassemble))
+                    {
+                        return MCH.Drill;
+                    }
+
+                    if (level >= MCH.Levels.Drill && IsOffCooldown(MCH.Drill) &&
+                        GetCooldown(MCH.Reassemble).CooldownRemaining > 2)
+                    {
+                        return MCH.Drill;
+                    }
+
+
+                    if (comboTime > 0 && !HasEffect(MCH.Buffs.Reassemble))
+                    {
+                        if (lastComboMove == MCH.SlugShot && level >= MCH.Levels.CleanShot)
+                            // Heated
+                            return OriginalHook(MCH.CleanShot);
+
+                        if (lastComboMove == MCH.SplitShot && level >= MCH.Levels.SlugShot)
+                            // Heated
+                            return OriginalHook(MCH.SlugShot);
+                    }
+
+                    // Heated
+                    if (!HasEffect(MCH.Buffs.Flamethrower) && !HasEffect(MCH.Buffs.Reassemble))
+                    {
+                        return OriginalHook(MCH.SplitShot);
+                    }
+                }
+
+
+                if (level >= ALL.Levels.HeadGraze && CanInterruptEnemy() && !GetCooldown(ALL.HeadGraze).IsCooldown)
+                {
+                    return ALL.HeadGraze;
+                }
+
+                if (CurrentTarget != null && LocalPlayer != null)
+                {
+                    if ((LocalPlayer.CurrentHp * 100) / LocalPlayer.MaxHp <= 40 &&
+                        IsOffCooldown(ALL.SecondWind) && level >= ALL.Levels.SecondWind)
+                    {
+                        return ALL.SecondWind;
+                    }
+                }
+
+
+                if (level >= MCH.Levels.Reassemble && !HasEffect(MCH.Buffs.Reassemble))
+                {
+                    var canUse = false;
+                    if (level >= 84)
+                    {
+                        if (GetCooldown(MCH.Reassemble).RemainingCharges > 0)
+                        {
+                            canUse = true;
+                        }
+                    }
+                    else
+                    {
+                        if (IsOffCooldown(MCH.Reassemble))
+                        {
+                            canUse = true;
+                        }
+                    }
+
+                    if (canUse)
+                    {
+                        if (level >= MCH.Levels.Drill && IsOffCooldown(MCH.Drill) ||
+                            GetCooldown(MCH.Drill).CooldownRemaining <= 1)
+                        {
+                            return MCH.Reassemble;
+                        }
+
+                        if (level >= MCH.Levels.AirAnchor && IsOffCooldown(MCH.AirAnchor) ||
+                            GetCooldown(MCH.AirAnchor).CooldownRemaining <= 1)
+                        {
+                            return MCH.Reassemble;
+                        }
+
+                        if (level >= MCH.Levels.Chainsaw && IsOffCooldown(MCH.Chainsaw) ||
+                            GetCooldown(MCH.Chainsaw).CooldownRemaining <= 1)
+                        {
+                            return MCH.Reassemble;
+                        }
+                    }
+                }
+
+                if (TargetHasEffect(MCH.Debuffs.Wildfire) && FindTargetEffect(MCH.Debuffs.Wildfire) != null &&
+                    FindTargetEffect(MCH.Debuffs.Wildfire).RemainingTime <= 2)
+                {
+                    return MCH.Detonator;
+                }
+
+                if (level >= MCH.Levels.Wildfire && IsOffCooldown(MCH.Wildfire) &&
+                    !TargetHasEffect(MCH.Debuffs.Wildfire) && gauge.IsOverheated)
+                {
+                    return MCH.Wildfire;
+                }
+
+
+                if (level >= MCH.Levels.BarrelStabilizer && IsOffCooldown(MCH.BarrelStabilizer) &&
+                    gauge.Heat <= 50 && inCombat)
+                {
+                    return MCH.BarrelStabilizer;
+                }
+
+                if (level < MCH.Levels.AutomatonQueen && level >= MCH.Levels.RookAutoturret &&
+                    IsOffCooldown(MCH.RookAutoturret) && gauge.Battery >= 50)
+                {
+                    return MCH.RookAutoturret;
+                }
+
+                if (level >= MCH.Levels.AutomatonQueen && IsOffCooldown(MCH.AutomatonQueen) &&
+                    gauge.Battery >= 50)
+                {
+                    return MCH.AutomatonQueen;
+                }
+
+                if (level >= MCH.Levels.Hypercharge && IsOffCooldown(MCH.Hypercharge) && gauge.Heat >= 50 &&
+                    !IsOffCooldown(MCH.Reassemble))
+                {
+                    return MCH.Hypercharge;
+                }
+
+                if (level >= MCH.Levels.Hypercharge && IsOffCooldown(MCH.Hypercharge) && gauge.Heat >= 50)
+                {
+                    return MCH.Hypercharge;
+                }
+
+
+                if (level >= MCH.Levels.Ricochet && GetCooldown(MCH.Ricochet).RemainingCharges >= 1 &&
+                    !IsOffCooldown(MCH.Reassemble) && GetCooldown(MCH.GaussRound).RemainingCharges <=
+                    GetCooldown(MCH.Ricochet).RemainingCharges)
+                {
+                    return MCH.Ricochet;
+                }
+
+                if (level >= MCH.Levels.GaussRound && GetCooldown(MCH.GaussRound).RemainingCharges >= 1 &&
+                    !IsOffCooldown(MCH.Reassemble))
+                {
+                    return MCH.GaussRound;
+                }
+            }
+
+            if (actionID == MCH.SpreadShot) // AOE ROTATION
+            {
+                var gauge = GetJobGauge<MCHGauge>();
+                var inCombat = HasCondition(Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat);
+
+                if (IsUnderGcd(MCH.GCD_SKILL))
+                {
+                    if (gauge.IsOverheated && level >= MCH.Levels.AutoCrossbow && !HasEffect(MCH.Buffs.Reassemble))
+                        return MCH.AutoCrossbow;
 
 
                     if (level >= MCH.Levels.AirAnchor && IsOffCooldown(MCH.AirAnchor) &&
@@ -177,94 +370,58 @@ namespace XIVComboExpandedPlugin.Combos
                     }
 
 
-                    if (comboTime > 0 && !HasEffect(MCH.Buffs.Reassemble))
-                    {
-                        if (lastComboMove == MCH.SlugShot && level >= MCH.Levels.CleanShot)
-                            // Heated
-                            return OriginalHook(MCH.CleanShot);
-
-                        if (lastComboMove == MCH.SplitShot && level >= MCH.Levels.SlugShot)
-                            // Heated
-                            return OriginalHook(MCH.SlugShot);
-                    }
+                    //if (comboTime > 0 && !HasEffect(MCH.Buffs.Reassemble))
+                    //{
+                    //    if (lastComboMove == MCH.SlugShot && level >= MCH.Levels.CleanShot)
+                    //        // Heated
+                    //        return OriginalHook(MCH.CleanShot);
+//
+                    //    if (lastComboMove == MCH.SplitShot && level >= MCH.Levels.SlugShot)
+                    //        // Heated
+                    //        return OriginalHook(MCH.SlugShot);
+                    //}
 
                     // Heated
                     if (!HasEffect(MCH.Buffs.Flamethrower) && !HasEffect(MCH.Buffs.Reassemble))
                     {
-                        return OriginalHook(MCH.SplitShot);
+                        return OriginalHook(MCH.SpreadShot);
                     }
                 }
 
-                if (!HasEffect(MCH.Buffs.Reassemble))
-                {
-                    if (level >= ALL.Levels.HeadGraze && CanInterruptEnemy() && !GetCooldown(ALL.HeadGraze).IsCooldown)
-                    {
-                        return ALL.HeadGraze;
-                    }
 
+                if (level >= ALL.Levels.HeadGraze && CanInterruptEnemy() && !GetCooldown(ALL.HeadGraze).IsCooldown)
+                {
+                    return ALL.HeadGraze;
+                }
+
+                if (CurrentTarget != null && LocalPlayer != null)
+                {
                     if ((LocalPlayer.CurrentHp * 100) / LocalPlayer.MaxHp <= 40 &&
                         IsOffCooldown(ALL.SecondWind) && level >= ALL.Levels.SecondWind)
                     {
                         return ALL.SecondWind;
                     }
+                }
 
-                    if (TargetHasEffect(MCH.Debuffs.Wildfire) &&
-                        FindTargetEffect(MCH.Debuffs.Wildfire).RemainingTime <= 2)
+                if (level >= MCH.Levels.Reassemble && !HasEffect(MCH.Buffs.Reassemble))
+                {
+                    var canUse = false;
+                    if (level >= 84)
                     {
-                        return MCH.Detonator;
+                        if (GetCooldown(MCH.Reassemble).RemainingCharges > 0)
+                        {
+                            canUse = true;
+                        }
+                    }
+                    else
+                    {
+                        if (IsOffCooldown(MCH.Reassemble))
+                        {
+                            canUse = true;
+                        }
                     }
 
-                    if (level >= MCH.Levels.Wildfire && IsOffCooldown(MCH.Wildfire) &&
-                        !TargetHasEffect(MCH.Debuffs.Wildfire) && gauge.IsOverheated)
-                    {
-                        return MCH.Wildfire;
-                    }
-
-
-                    if (level >= MCH.Levels.BarrelStabilizer && IsOffCooldown(MCH.BarrelStabilizer) &&
-                        gauge.Heat <= 50 && inCombat)
-                    {
-                        return MCH.BarrelStabilizer;
-                    }
-
-                    if (level < MCH.Levels.AutomatonQueen && level >= MCH.Levels.RookAutoturret &&
-                        IsOffCooldown(MCH.RookAutoturret) && gauge.Battery >= 50)
-                    {
-                        return MCH.RookAutoturret;
-                    }
-
-                    if (level >= MCH.Levels.AutomatonQueen && IsOffCooldown(MCH.AutomatonQueen) &&
-                        gauge.Battery >= 50)
-                    {
-                        return MCH.AutomatonQueen;
-                    }
-
-                    if (level >= MCH.Levels.Hypercharge && IsOffCooldown(MCH.Hypercharge) && gauge.Heat >= 50 &&
-                        !IsOffCooldown(MCH.Reassemble))
-                    {
-                        return MCH.Hypercharge;
-                    }
-
-                    if (level >= MCH.Levels.Hypercharge && IsOffCooldown(MCH.Hypercharge) && gauge.Heat >= 50)
-                    {
-                        return MCH.Hypercharge;
-                    }
-
-
-                    if (level >= MCH.Levels.Ricochet && GetCooldown(MCH.Ricochet).RemainingCharges >= 1 &&
-                        !IsOffCooldown(MCH.Reassemble))
-                    {
-                        return MCH.Ricochet;
-                    }
-
-                    if (level >= MCH.Levels.GaussRound && GetCooldown(MCH.GaussRound).RemainingCharges >= 1 &&
-                        !IsOffCooldown(MCH.Reassemble))
-                    {
-                        return MCH.GaussRound;
-                    }
-
-
-                    if (level >= MCH.Levels.Reassemble && IsOffCooldown(MCH.Reassemble))
+                    if (canUse)
                     {
                         if (IsOffCooldown(MCH.Drill) && level >= MCH.Levels.Drill)
                         {
@@ -281,6 +438,61 @@ namespace XIVComboExpandedPlugin.Combos
                             return MCH.Reassemble;
                         }
                     }
+                }
+
+                if (TargetHasEffect(MCH.Debuffs.Wildfire) &&
+                    FindTargetEffect(MCH.Debuffs.Wildfire).RemainingTime <= 2)
+                {
+                    return MCH.Detonator;
+                }
+
+                if (level >= MCH.Levels.Wildfire && IsOffCooldown(MCH.Wildfire) &&
+                    !TargetHasEffect(MCH.Debuffs.Wildfire) && gauge.IsOverheated)
+                {
+                    return MCH.Wildfire;
+                }
+
+
+                if (level >= MCH.Levels.BarrelStabilizer && IsOffCooldown(MCH.BarrelStabilizer) &&
+                    gauge.Heat <= 50 && inCombat)
+                {
+                    return MCH.BarrelStabilizer;
+                }
+
+                if (level < MCH.Levels.AutomatonQueen && level >= MCH.Levels.RookAutoturret &&
+                    IsOffCooldown(MCH.RookAutoturret) && gauge.Battery >= 50)
+                {
+                    return MCH.RookAutoturret;
+                }
+
+                if (level >= MCH.Levels.AutomatonQueen && IsOffCooldown(MCH.AutomatonQueen) &&
+                    gauge.Battery >= 50)
+                {
+                    return MCH.AutomatonQueen;
+                }
+
+                if (level >= MCH.Levels.Hypercharge && IsOffCooldown(MCH.Hypercharge) && gauge.Heat >= 50 &&
+                    !IsOffCooldown(MCH.Reassemble))
+                {
+                    return MCH.Hypercharge;
+                }
+
+                if (level >= MCH.Levels.Hypercharge && IsOffCooldown(MCH.Hypercharge) && gauge.Heat >= 50)
+                {
+                    return MCH.Hypercharge;
+                }
+
+
+                if (level >= MCH.Levels.Ricochet && GetCooldown(MCH.Ricochet).RemainingCharges >= 1 &&
+                    !IsOffCooldown(MCH.Reassemble))
+                {
+                    return MCH.Ricochet;
+                }
+
+                if (level >= MCH.Levels.GaussRound && GetCooldown(MCH.GaussRound).RemainingCharges >= 1 &&
+                    !IsOffCooldown(MCH.Reassemble))
+                {
+                    return MCH.GaussRound;
                 }
             }
 

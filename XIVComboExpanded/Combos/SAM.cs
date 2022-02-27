@@ -59,6 +59,7 @@ namespace XIVComboExpandedPlugin.Combos
                 Jinpu = 1298,
                 Shifu = 1299,
                 TrueNorth = 1250,
+                Kaiten = 1229,
                 OgiNamikiriReady = 2959;
         }
 
@@ -176,14 +177,6 @@ namespace XIVComboExpandedPlugin.Combos
 
                 if (IsUnderGcd(SAM.GCD_SKILL))
                 {
-                    //if (lastComboMove != null && comboTime != null) // Debug lul
-                    //    PluginLog.Log("lastComboMove = " + lastComboMove + " time = " + comboTime);
-                    //if (level >= SAM.Levels.TsubameGaeshi && gauge.Sen == Sen.NONE &&
-                    //    IsOffCooldown(SAM.TsubameGaeshi) && HasCondition(ConditionFlag.InCombat))
-                    //{
-                    //    if (CanUseThing && !isMoving)
-                    //        return OriginalHook(SAM.TsubameGaeshi);
-                    //}
 
                     if (level >= SAM.Levels.KaeshiSetsugekka && gauge.Kaeshi == Kaeshi.SETSUGEKKA &&
                         GetCooldown(SAM.KaeshiSetsugekka).RemainingCharges > 0)
@@ -233,7 +226,7 @@ namespace XIVComboExpandedPlugin.Combos
                             }
 
                             if (level >= SAM.Levels.Iaijutsu && FindTargetEffect(SAM.Debuffs.Higanbana) != null &&
-                                FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime <= 10 &&
+                                FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime <= 7 &&
                                 gauge.HasSetsu && sens <= 1)
                             {
                                 return SAM.Higanbana;
@@ -328,7 +321,7 @@ namespace XIVComboExpandedPlugin.Combos
                     return SAM.Hagakure;
                 }
 
-                if (level >= SAM.Levels.HissatsuKaiten && gauge.Kenki >= 20)
+                if (level >= SAM.Levels.HissatsuKaiten && gauge.Kenki >= 20 && !HasEffect(SAM.Buffs.Kaiten))
                 {
                     if (GetCooldown(SAM.TsubameGaeshi).RemainingCharges > 0 ||
                         GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining > 8)
@@ -357,7 +350,7 @@ namespace XIVComboExpandedPlugin.Combos
                             }
 
                             if (level >= SAM.Levels.Iaijutsu && FindTargetEffect(SAM.Debuffs.Higanbana) != null &&
-                                FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime <= 10 &&
+                                FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime <= 7 &&
                                 gauge.HasSetsu && sens <= 1)
                             {
                                 return SAM.HissatsuKaiten;

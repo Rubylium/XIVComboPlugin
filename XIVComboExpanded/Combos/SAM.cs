@@ -382,7 +382,7 @@ namespace XIVComboExpandedPlugin.Combos
                 }
 
 
-                if (sens < 3)
+                if (sens < 2)
                 {
                     if (level >= SAM.Levels.HissatsuSenei && IsOffCooldown(SAM.HissatsuSenei) && gauge.Kenki >= 25)
                         return SAM.HissatsuSenei;

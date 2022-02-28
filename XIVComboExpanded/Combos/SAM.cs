@@ -233,13 +233,13 @@ namespace XIVComboExpandedPlugin.Combos
                         }
                         else
                         {
-                            if (level >= SAM.Levels.Hagakure &&
-                                GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining < 8 &&
-                                IsOffCooldown(SAM.Hagakure))
-                            {
-                                ShouldUseHakagure = true;
-                                //return SAM.Hagakure;
-                            }
+                            // if (level >= SAM.Levels.Hagakure &&
+                            // GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining < 8 &&
+                            //  IsOffCooldown(SAM.Hagakure))
+                            // {
+                            // ShouldUseHakagure = true;
+                            //return SAM.Hagakure;
+                            // }
                         }
                     }
 
@@ -290,12 +290,12 @@ namespace XIVComboExpandedPlugin.Combos
                         }
                         else
                         {
-                            if (level >= SAM.Levels.Hagakure &&
-                                GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining < 8 &&
-                                IsOffCooldown(SAM.Hagakure))
-                            {
-                                return SAM.Hagakure;
-                            }
+                            // if (level >= SAM.Levels.Hagakure &&
+                            //    GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining < 8 &&
+                            //    IsOffCooldown(SAM.Hagakure))
+                            //{
+                            // return SAM.Hagakure;
+                            // }
                         }
                     }
                     else
@@ -315,23 +315,27 @@ namespace XIVComboExpandedPlugin.Combos
                     return SAM.Hakaze;
                 }
 
-                if (level >= SAM.Levels.Hagakure && IsOffCooldown(SAM.Hagakure) && ShouldUseHakagure)
-                {
-                    return SAM.Hagakure;
-                }
+                //if (level >= SAM.Levels.Hagakure && IsOffCooldown(SAM.Hagakure) && ShouldUseHakagure)
+                //{
+                //    return SAM.Hagakure;
+                //}
 
                 if (level >= SAM.Levels.HissatsuKaiten && gauge.Kenki >= 20 && !HasEffect(SAM.Buffs.Kaiten) &&
                     IsOffCooldown(SAM.HissatsuKaiten))
                 {
-                    if (GetCooldown(SAM.TsubameGaeshi).RemainingCharges > 0 ||
-                        GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining > 8)
-                    {
-                        if (level >= SAM.Levels.Iaijutsu && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu)
-                        {
-                            return SAM.HissatsuKaiten;
-                        }
-                    }
+                    // if (GetCooldown(SAM.TsubameGaeshi).RemainingCharges > 0 ||
+                    //   GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining > 8)
+                    // {
+                    //   if (level >= SAM.Levels.Iaijutsu && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu)
+                    //   {
+                    //       return SAM.HissatsuKaiten;
+                    //  }
+                    //}
 
+                    if (level >= SAM.Levels.Iaijutsu && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu)
+                    {
+                        return SAM.HissatsuKaiten;
+                    }
 
                     if (level >= SAM.Levels.OgiNamikiri && HasEffect(SAM.Buffs.OgiNamikiriReady) && !this.isMoving)
                     {
@@ -382,12 +386,13 @@ namespace XIVComboExpandedPlugin.Combos
                 }
 
 
-                if (sens < 2)
+                if (sens < 3)
                 {
                     if (level >= SAM.Levels.HissatsuSenei && IsOffCooldown(SAM.HissatsuSenei) && gauge.Kenki >= 25)
                         return SAM.HissatsuSenei;
 
-                    if (level >= SAM.Levels.HissatsuShinten && IsOffCooldown(SAM.HissatsuShinten) && gauge.Kenki >= 25)
+                    if (level >= SAM.Levels.HissatsuShinten && IsOffCooldown(SAM.HissatsuShinten) && gauge.Kenki >= 25 &&
+                        FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime >= 15)
                     {
                         return SAM.HissatsuShinten;
                     }
@@ -479,7 +484,8 @@ namespace XIVComboExpandedPlugin.Combos
                         return SAM.HissatsuKyuten;
                     }
 
-                    if (level >= SAM.Levels.HissatsuShinten && IsOffCooldown(SAM.HissatsuShinten) && gauge.Kenki >= 25)
+                    if (level >= SAM.Levels.HissatsuShinten && IsOffCooldown(SAM.HissatsuShinten) && gauge.Kenki >= 25 &&
+                        FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime >= 15)
                     {
                         return SAM.HissatsuShinten;
                     }

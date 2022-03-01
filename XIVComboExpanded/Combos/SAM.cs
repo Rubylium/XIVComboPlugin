@@ -226,7 +226,7 @@ namespace XIVComboExpandedPlugin.Combos
                         }
 
                         if (level >= SAM.Levels.Iaijutsu && FindTargetEffect(SAM.Debuffs.Higanbana) != null &&
-                            FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime <= 18 &&
+                            FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime <= 9 &&
                             gauge.HasSetsu && sens <= 2 && HasEffect(SAM.Buffs.Kaiten))
                         {
                             return SAM.Higanbana;
@@ -352,7 +352,7 @@ namespace XIVComboExpandedPlugin.Combos
                         }
 
                         if (level >= SAM.Levels.Iaijutsu && FindTargetEffect(SAM.Debuffs.Higanbana) != null &&
-                            FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime <= 18 &&
+                            FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime <= 9 &&
                             gauge.HasSetsu && sens <= 1 && !this.isMoving)
                         {
                             return SAM.HissatsuKaiten;
@@ -391,7 +391,7 @@ namespace XIVComboExpandedPlugin.Combos
 
                     if (level >= SAM.Levels.HissatsuShinten && IsOffCooldown(SAM.HissatsuShinten) &&
                         gauge.Kenki >= 25 &&
-                        FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime >= 15)
+                        FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime >= 10)
                     {
                         return SAM.HissatsuShinten;
                     }
@@ -485,7 +485,7 @@ namespace XIVComboExpandedPlugin.Combos
 
                     if (level >= SAM.Levels.HissatsuShinten && IsOffCooldown(SAM.HissatsuShinten) &&
                         gauge.Kenki >= 25 &&
-                        FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime >= 15)
+                        FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime >= 10)
                     {
                         return SAM.HissatsuShinten;
                     }

@@ -221,14 +221,14 @@ namespace XIVComboExpandedPlugin.Combos
                         if (level >= SAM.Levels.Iaijutsu && !TargetHasEffect(SAM.Debuffs.Higanbana) &&
                             gauge.HasSetsu && sens <= 2)
                         {
-                            return SAM.Higanbana;
+                            return OriginalHook(SAM.Higanbana);
                         }
 
                         if (level >= SAM.Levels.Iaijutsu && FindTargetEffect(SAM.Debuffs.Higanbana) != null &&
                             FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime <= 9 &&
                             gauge.HasSetsu && sens <= 2 )
                         {
-                            return SAM.Higanbana;
+                            return OriginalHook(SAM.Higanbana);
                         }
                         // }
                         //else

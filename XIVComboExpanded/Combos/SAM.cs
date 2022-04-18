@@ -184,7 +184,7 @@ namespace XIVComboExpandedPlugin.Combos
                     }
 
                     if (level >= SAM.Levels.KaeshiHiganbana && gauge.Kaeshi == Kaeshi.HIGANBANA &&
-                        GetCooldown(SAM.KaeshiHiganbana).RemainingCharges > 0 && HasEffect(SAM.Buffs.Kaiten))
+                        GetCooldown(SAM.KaeshiHiganbana).RemainingCharges > 0)
                     {
                         return SAM.KaeshiHiganbana;
                     }
@@ -194,8 +194,7 @@ namespace XIVComboExpandedPlugin.Combos
                         return SAM.KaeshiNamikiri;
                     }
 
-                    if (level >= SAM.Levels.OgiNamikiri && HasEffect(SAM.Buffs.OgiNamikiriReady) && !this.isMoving &&
-                        HasEffect(SAM.Buffs.Kaiten))
+                    if (level >= SAM.Levels.OgiNamikiri && HasEffect(SAM.Buffs.OgiNamikiriReady) && !this.isMoving )
                     {
                         return SAM.OgiNamikiri;
                     }
@@ -220,14 +219,14 @@ namespace XIVComboExpandedPlugin.Combos
                         // GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining > 8)
                         //{
                         if (level >= SAM.Levels.Iaijutsu && !TargetHasEffect(SAM.Debuffs.Higanbana) &&
-                            gauge.HasSetsu && HasEffect(SAM.Buffs.Kaiten) && sens <= 2)
+                            gauge.HasSetsu && sens <= 2)
                         {
                             return SAM.Higanbana;
                         }
 
                         if (level >= SAM.Levels.Iaijutsu && FindTargetEffect(SAM.Debuffs.Higanbana) != null &&
                             FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime <= 9 &&
-                            gauge.HasSetsu && sens <= 2 && HasEffect(SAM.Buffs.Kaiten))
+                            gauge.HasSetsu && sens <= 2 )
                         {
                             return SAM.Higanbana;
                         }
@@ -284,8 +283,7 @@ namespace XIVComboExpandedPlugin.Combos
                         // if (GetCooldown(SAM.TsubameGaeshi).RemainingCharges > 0 ||
                         //GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining > 8)
                         //{
-                        if (level >= SAM.Levels.Iaijutsu && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu &&
-                            HasEffect(SAM.Buffs.Kaiten))
+                        if (level >= SAM.Levels.Iaijutsu && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu)
                         {
                             return SAM.MidareSetsugekka;
                         }
@@ -321,45 +319,6 @@ namespace XIVComboExpandedPlugin.Combos
                 //{
                 //    return SAM.Hagakure;
                 //}
-
-                if (level >= SAM.Levels.HissatsuKaiten && gauge.Kenki >= 20 && !HasEffect(SAM.Buffs.Kaiten) &&
-                    IsOffCooldown(SAM.HissatsuKaiten))
-                {
-                    //  if (GetCooldown(SAM.TsubameGaeshi).RemainingCharges > 0 ||
-                    //      GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining > 8)
-                    //  {
-                    if (level >= SAM.Levels.Iaijutsu && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu &&
-                        !this.isMoving)
-                    {
-                        return SAM.HissatsuKaiten;
-                    }
-                    //  }
-
-                    if (level >= SAM.Levels.OgiNamikiri && HasEffect(SAM.Buffs.OgiNamikiriReady) && !this.isMoving)
-                    {
-                        return SAM.HissatsuKaiten;
-                    }
-
-                    if (!this.isMoving)
-                    {
-                        //if (GetCooldown(SAM.TsubameGaeshi).RemainingCharges > 0 ||
-                        //   GetCooldown(SAM.TsubameGaeshi).ChargeCooldownRemaining > 8)
-                        //{
-                        if (level >= SAM.Levels.Iaijutsu && !TargetHasEffect(SAM.Debuffs.Higanbana) &&
-                            gauge.HasSetsu && !this.isMoving)
-                        {
-                            return SAM.HissatsuKaiten;
-                        }
-
-                        if (level >= SAM.Levels.Iaijutsu && FindTargetEffect(SAM.Debuffs.Higanbana) != null &&
-                            FindTargetEffect(SAM.Debuffs.Higanbana).RemainingTime <= 9 &&
-                            gauge.HasSetsu && sens <= 1 && !this.isMoving)
-                        {
-                            return SAM.HissatsuKaiten;
-                        }
-                        // }
-                    }
-                }
 
 
                 if (level >= SAM.Levels.Shoha && gauge.MeditationStacks >= 3 && IsOffCooldown(SAM.Shoha))

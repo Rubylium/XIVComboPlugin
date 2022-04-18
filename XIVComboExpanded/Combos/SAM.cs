@@ -183,11 +183,11 @@ namespace XIVComboExpandedPlugin.Combos
                         return SAM.KaeshiSetsugekka;
                     }
 
-                    if (level >= SAM.Levels.KaeshiHiganbana && gauge.Kaeshi == Kaeshi.HIGANBANA &&
-                        GetCooldown(SAM.KaeshiHiganbana).RemainingCharges > 0)
-                    {
-                        return SAM.KaeshiHiganbana;
-                    }
+                    //  if (level >= SAM.Levels.KaeshiHiganbana && gauge.Kaeshi == Kaeshi.HIGANBANA &&
+                    //   GetCooldown(SAM.KaeshiHiganbana).RemainingCharges > 0)
+                        // {
+                        //  return SAM.KaeshiHiganbana;
+                    //}
 
                     if (level >= SAM.Levels.KaeshiNamikiri && gauge.Kaeshi == Kaeshi.NAMIKIRI)
                     {

@@ -417,12 +417,7 @@ namespace XIVComboExpandedPlugin.Combos
                     return SAM.Ikishoten;
                 }
 
-                if (level >= SAM.Levels.HissatsuKaiten && gauge.HasGetsu && gauge.HasKa && gauge.HasSetsu &&
-                    gauge.Kenki >= 20 && !this.isMoving)
-                {
-                    return SAM.HissatsuKaiten;
-                }
-
+             
                 var sens = 0;
                 if (gauge.HasGetsu)
                 {
